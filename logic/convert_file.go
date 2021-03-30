@@ -1,10 +1,12 @@
 package logic
 
-    import (
-        "stt_back/types"
+import (
+    "stt_back/common"
+    "stt_back/errors"
+    "stt_back/types"
 
-        "github.com/jinzhu/gorm"
-    )
+    "github.com/jinzhu/gorm"
+)
 
 func ConvertFileFind(filter types.ConvertFileFilter)  (result []types.ConvertFile, totalRecords int, err error) {
 
@@ -21,9 +23,30 @@ func ConvertFileMultiCreate(filter types.ConvertFileFilter)  (data []types.Conve
 }
 
 func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB)  (data types.ConvertFile, err error) {
-    
+    model := filter.GetConvertFileModel()
+    fileFormat := common.GetFileFormatFromName(model.InputFilename)
+
+    resultFile := []byte{}
+    switch fileFormat {
+    case "wav":
+        break
+    case "mp3":
+        break
+    default:
+        return types.ConvertFile{}, getUnsupportedFileFormatError()
+    }
+
+    // TODO: pass result file into external service
+
+    // TODO: save converted input file on disk
+
+    // TODO: save ConvertLog in db
 	//ConvertFile Create logic code
     return
+}
+
+func getUnsupportedFileFormatError() error {
+    return errors.NewErrorWithCode("Unsupported file format", errors.ErrorCodeUnsupportedFileFormat, "InputFilename")
 }
 
 func ConvertFileRead(filter types.ConvertFileFilter)  (data types.ConvertFile, err error) {
