@@ -1,100 +1,125 @@
 package logic
 
 import (
-    "stt_back/common"
-    "stt_back/errors"
-    "stt_back/types"
-
-    "github.com/jinzhu/gorm"
+	"github.com/faiface/beep"
+	"github.com/faiface/beep/mp3"
+	"github.com/faiface/beep/wav"
+	"github.com/jinzhu/gorm"
+	"github.com/orcaman/writerseeker"
+	"io/ioutil"
+	"mime/multipart"
+	"stt_back/common"
+	"stt_back/core"
+	"stt_back/errors"
+	"stt_back/services/file_storage"
+	"stt_back/services/stt_converter"
+	"stt_back/types"
 )
 
-func ConvertFileFind(filter types.ConvertFileFilter)  (result []types.ConvertFile, totalRecords int, err error) {
+func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data types.ConvertFile, err error) {
+	inputFile, err := convertInputFile(filter.File, filter.Header)
+	if err != nil {
+		return types.ConvertFile{}, err
+	}
 
-	//ConvertFile Find logic code
+	result, err := stt_converter.ConvertSpeechToText(inputFile)
+	if err != nil {
+		return types.ConvertFile{}, err
+	}
 
-    return
-}
+	resultFilePath := createResultFileIfNeed(result, filter.ResultFormat)
 
-func ConvertFileMultiCreate(filter types.ConvertFileFilter)  (data []types.ConvertFile, err error) {
+	filePath, err := file_storage.CreateFileInLocalStorage(inputFile, ".wav")
+	if err != nil {
+		return types.ConvertFile{}, err
+	}
 
-	//ConvertFile MultiCreate logic code
+	f := types.ConverterLogFilter{}
+	f.SetConverterLogModel(types.ConverterLog{
+		FilePath:       filePath,
+		ResultText:     result.Text,
+		ResultFilePath: resultFilePath,
+		ResultFormat:   filter.ResultFormat,
+		RawResult:      result.RawResult,
+	})
+	_, err = ConverterLogCreate(f, core.Db)
 
-    return
-}
-
-func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB)  (data types.ConvertFile, err error) {
-    model := filter.GetConvertFileModel()
-    fileFormat := common.GetFileFormatFromName(model.InputFilename)
-
-    resultFile := []byte{}
-    switch fileFormat {
-    case "wav":
-        break
-    case "mp3":
-        break
-    default:
-        return types.ConvertFile{}, getUnsupportedFileFormatError()
-    }
-
-    // TODO: pass result file into external service
-
-    // TODO: save converted input file on disk
-
-    // TODO: save ConvertLog in db
-	//ConvertFile Create logic code
-    return
+	data = types.ConvertFile{
+		ResultFilePath: resultFilePath,
+		ResultText:     result.Text,
+		ResultFormat:   filter.ResultFormat,
+	}
+	return
 }
 
 func getUnsupportedFileFormatError() error {
-    return errors.NewErrorWithCode("Unsupported file format", errors.ErrorCodeUnsupportedFileFormat, "InputFilename")
+	return errors.NewErrorWithCode("Unsupported file format", errors.ErrorCodeUnsupportedFileFormat, "InputFilename")
 }
 
-func ConvertFileRead(filter types.ConvertFileFilter)  (data types.ConvertFile, err error) {
+func convertInputFile(file multipart.File, header *multipart.FileHeader) (res []byte, err error) {
+	fileFormat := common.GetFileFormatFromName(header.Filename)
 
-	//ConvertFile Read logic code
-    return
+	switch fileFormat {
+	case ".wav":
+		streamer, format, err := wav.Decode(file)
+		if err != nil {
+			return []byte{}, err
+		}
+		defer streamer.Close()
+		r := beep.Resample(3, format.SampleRate, beep.SampleRate(8000), streamer)
+		buf := writerseeker.WriterSeeker{}
+		err = wav.Encode(&buf, r, beep.Format{
+			SampleRate:  8000,
+			NumChannels: 1,
+			Precision:   1,
+		})
+		if err != nil {
+			return []byte{}, err
+		}
+		res, err = ioutil.ReadAll(buf.Reader())
+		if err != nil {
+			return []byte{}, err
+		}
+
+		break
+	case ".mp3":
+		streamer, format, err := mp3.Decode(file)
+		if err != nil {
+			return []byte{}, err
+		}
+		defer streamer.Close()
+		r := beep.Resample(3, format.SampleRate, beep.SampleRate(8000), streamer)
+		buf := writerseeker.WriterSeeker{}
+		err = wav.Encode(&buf, r, beep.Format{
+			SampleRate:  8000,
+			NumChannels: 1,
+			Precision:   1,
+		})
+		if err != nil {
+			return []byte{}, err
+		}
+		res, err = ioutil.ReadAll(buf.Reader())
+		if err != nil {
+			return []byte{}, err
+		}
+		break
+	default:
+		return []byte{}, getUnsupportedFileFormatError()
+	}
+
+	return
 }
 
+func createResultFileIfNeed(result stt_converter.Result, format string) (path string){
+	//TODO: Implement creating file for format
+	switch format {
+	case "pdf":
+		path = "pdf_path"
+		break
+	case "doc":
+		path = "doc_path"
+		break
+	}
 
-func ConvertFileMultiUpdate(filter types.ConvertFileFilter)  (data []types.ConvertFile, err error) {
-
-	//ConvertFile MultiUpdate logic code
-    return
+	return
 }
-
-func ConvertFileUpdate(filter types.ConvertFileFilter, query *gorm.DB)  (data types.ConvertFile, err error) {
-
-	//ConvertFile Update logic code
-    return
-}
-
-
-
-func ConvertFileMultiDelete(filter types.ConvertFileFilter)  (isOk bool, err error) {
-
-	//ConvertFile MultiDelete logic code
-    return
-}
-
-func ConvertFileDelete(filter types.ConvertFileFilter, query *gorm.DB)  (isOk bool, err error) {
-
-	//ConvertFile Delete logic code
-    return
-}
-
-
-
-func ConvertFileFindOrCreate(filter types.ConvertFileFilter)  (data types.ConvertFile, err error) {
-    
-	//ConvertFile FindOrCreate logic code
-    return
-}
-
-
-func ConvertFileUpdateOrCreate(filter types.ConvertFileFilter)  (data types.ConvertFile, err error) {
-    
-	//ConvertFile UpdateOrCreate logic code
-    return
-}
-
-// add all assign functions

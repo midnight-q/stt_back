@@ -274,6 +274,15 @@ func (filter *AbstractFilter) GetCurrentUserAgent() string {
 	return filter.request.UserAgent()
 }
 
+func (filter *AbstractFilter) GetCurrentContentType() string {
+	return filter.request.Header.Get("Content-Type")
+}
+
+func (filter *AbstractFilter) IsFormDataContentType() bool {
+	return strings.Contains(filter.GetCurrentContentType(), "multipart/form-data")
+}
+
+
 func isGroupFunctionType(functionType string) bool {
     switch functionType {
     case settings.FunctionTypeMultiCreate, settings.FunctionTypeMultiUpdate, settings.FunctionTypeMultiDelete, settings.FunctionTypeMultiFindOrCreate:

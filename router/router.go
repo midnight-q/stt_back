@@ -149,27 +149,14 @@ func Router() http.Handler {
 
     //[ ConverterLog ]
     router.HandleFunc(settings.ConverterLogRoute,         webapp.ConverterLogFind).Methods("GET")
-    //router.HandleFunc(settings.ConverterLogRoute,         webapp.ConverterLogCreate).Methods("POST")
-    //router.HandleFunc(settings.ConverterLogRoute+"/list", webapp.ConverterLogMultiCreate).Methods("POST")
     router.HandleFunc(settings.ConverterLogRoute+"/{id}", webapp.ConverterLogRead).Methods("GET")
-    //router.HandleFunc(settings.ConverterLogRoute+"/list", webapp.ConverterLogMultiUpdate).Methods("PUT")
-    //router.HandleFunc(settings.ConverterLogRoute+"/{id}", webapp.ConverterLogUpdate).Methods("PUT")
     router.HandleFunc(settings.ConverterLogRoute+"/list", webapp.ConverterLogMultiDelete).Methods("DELETE")
     router.HandleFunc(settings.ConverterLogRoute+"/{id}", webapp.ConverterLogDelete).Methods("DELETE")
-    //router.HandleFunc(settings.ConverterLogRoute,         webapp.ConverterLogFindOrCreate).Methods("PUT")
-    //router.HandleFunc(settings.ConverterLogRoute,         webapp.ConverterLogUpdateOrCreate).Methods("PATCH")
 
     //[ ConvertFile ]
-    //router.HandleFunc(settings.ConvertFileRoute,         webapp.ConvertFileFind).Methods("GET")
     router.HandleFunc(settings.ConvertFileRoute,         webapp.ConvertFileCreate).Methods("POST")
-    router.HandleFunc(settings.ConvertFileRoute+"/list", webapp.ConvertFileMultiCreate).Methods("POST")
-    //router.HandleFunc(settings.ConvertFileRoute+"/{id}", webapp.ConvertFileRead).Methods("GET")
-    //router.HandleFunc(settings.ConvertFileRoute+"/list", webapp.ConvertFileMultiUpdate).Methods("PUT")
-    //router.HandleFunc(settings.ConvertFileRoute+"/{id}", webapp.ConvertFileUpdate).Methods("PUT")
-    //router.HandleFunc(settings.ConvertFileRoute+"/list", webapp.ConvertFileMultiDelete).Methods("DELETE")
-    //router.HandleFunc(settings.ConvertFileRoute+"/{id}", webapp.ConvertFileDelete).Methods("DELETE")
-    //router.HandleFunc(settings.ConvertFileRoute,         webapp.ConvertFileFindOrCreate).Methods("PUT")
-    //router.HandleFunc(settings.ConvertFileRoute,         webapp.ConvertFileUpdateOrCreate).Methods("PATCH")
+
+    router.HandleFunc(settings.StaticFileRoute+"/{folder}/{name}", webapp.StaticFileLoader).Methods("GET")
 
     //router-generator here dont touch this line
 

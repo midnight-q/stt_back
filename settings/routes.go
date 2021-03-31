@@ -37,6 +37,8 @@ const ConvertFileRoute = "/api/v1/convertFile"
 
 // route-constant-generator here dont touch this line
 
+const StaticFileRoute = "/static"
+
 var RoutesArray = []string{
 
 	UserRoute,
