@@ -1,11 +1,6 @@
 package logic
 
 import (
-	"github.com/faiface/beep"
-	"github.com/faiface/beep/mp3"
-	"github.com/faiface/beep/wav"
-	"github.com/jinzhu/gorm"
-	"github.com/orcaman/writerseeker"
 	"io/ioutil"
 	"mime/multipart"
 	"stt_back/common"
@@ -14,6 +9,12 @@ import (
 	"stt_back/services/file_storage"
 	"stt_back/services/stt_converter"
 	"stt_back/types"
+
+	"github.com/faiface/beep"
+	"github.com/faiface/beep/mp3"
+	"github.com/faiface/beep/wav"
+	"github.com/jinzhu/gorm"
+	"github.com/orcaman/writerseeker"
 )
 
 func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data types.ConvertFile, err error) {
@@ -71,7 +72,7 @@ func convertInputFile(file multipart.File, header *multipart.FileHeader) (res []
 		err = wav.Encode(&buf, r, beep.Format{
 			SampleRate:  8000,
 			NumChannels: 1,
-			Precision:   1,
+			Precision:   2,
 		})
 		if err != nil {
 			return []byte{}, err
@@ -93,7 +94,7 @@ func convertInputFile(file multipart.File, header *multipart.FileHeader) (res []
 		err = wav.Encode(&buf, r, beep.Format{
 			SampleRate:  8000,
 			NumChannels: 1,
-			Precision:   1,
+			Precision:   2,
 		})
 		if err != nil {
 			return []byte{}, err
@@ -110,7 +111,7 @@ func convertInputFile(file multipart.File, header *multipart.FileHeader) (res []
 	return
 }
 
-func createResultFileIfNeed(result stt_converter.Result, format string) (path string){
+func createResultFileIfNeed(result stt_converter.Result, format string) (path string) {
 	//TODO: Implement creating file for format
 	switch format {
 	case "pdf":
