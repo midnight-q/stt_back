@@ -3,15 +3,19 @@ package types
 import (
 	"mime/multipart"
 	"net/http"
+	"strconv"
 	"stt_back/errors"
+	"stt_back/services/stt_converter"
 	"stt_back/settings"
 )
 
 type ConvertFile struct {
-	Id             int
-	ResultFilePath string
-	ResultText     string
-	ResultFormat   string
+	Id                int
+	ResultText        string
+	Data              []stt_converter.Data
+	ResultHtml        string
+	ResultFilePdfPath string
+	ResultFileDocPath string
 	//ConvertFile remove this line for disable generator functionality
 
 	validator
@@ -28,7 +32,12 @@ type ConvertFileFilter struct {
 	File   multipart.File
 	Header *multipart.FileHeader
 
-	ResultFormat string
+	TimeFrame         int
+	IsShowEmotion     bool
+	IsShowSpeaker     bool
+	IsShowTag         bool
+	IsShowPunctuation bool
+	UserId            int
 	//ConvertFileFilter remove this line for disable generator functionality
 
 	AbstractFilter
@@ -42,7 +51,11 @@ func GetConvertFileFilter(request *http.Request, functionType string) (filter Co
 		if err != nil {
 			return filter, err
 		}
-		filter.ResultFormat = request.FormValue("ResultFormat")
+		filter.TimeFrame, _ = strconv.Atoi(request.FormValue("TimeFrame"))
+		filter.UserId, _ = strconv.Atoi(request.FormValue("UserId"))
+		filter.IsShowEmotion, _ = strconv.ParseBool(request.FormValue("IsShowEmotion"))
+		filter.IsShowSpeaker, _ = strconv.ParseBool(request.FormValue("IsShowSpeaker"))
+		filter.IsShowTag, _ = strconv.ParseBool(request.FormValue("IsShowTag"))
 	} else {
 		err = errors.New("Unsupported content type")
 		return ConvertFileFilter{}, err

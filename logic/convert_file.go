@@ -18,6 +18,15 @@ import (
 )
 
 func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data types.ConvertFile, err error) {
+	if filter.TimeFrame < 1 {
+		err = errors.New("Not found TimeFrame")
+		return types.ConvertFile{}, err
+	}
+	if filter.UserId < 1 {
+		err = errors.New("Not found UserId")
+		return types.ConvertFile{}, err
+	}
+
 	inputFile, err := convertInputFile(filter.File, filter.Header)
 	if err != nil {
 		return types.ConvertFile{}, err
@@ -28,7 +37,17 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		return types.ConvertFile{}, err
 	}
 
-	resultFilePath := createResultFileIfNeed(result, filter.ResultFormat)
+	converterParams := stt_converter.Params{
+		TimeFrame:         filter.TimeFrame,
+		IsShowEmotion:     filter.IsShowEmotion,
+		IsShowSpeaker:     filter.IsShowSpeaker,
+		IsShowTag:         filter.IsShowTag,
+		IsShowPunctuation: filter.IsShowPunctuation,
+	}
+	resultText := stt_converter.ConvertDataToText(result.Data, converterParams)
+	resultHtml := stt_converter.ConvertDataToHtml(result.Data, converterParams)
+	resultFileDocPath := stt_converter.ConvertDataToPdf(result.Data, converterParams) // TODO: Implement this
+	resultFilePdfPath := stt_converter.ConvertDataToDoc(result.Data, converterParams) // TODO: Implement this
 
 	filePath, err := file_storage.CreateFileInLocalStorage(inputFile, ".wav")
 	if err != nil {
@@ -37,18 +56,22 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 
 	f := types.ConverterLogFilter{}
 	f.SetConverterLogModel(types.ConverterLog{
-		FilePath:       filePath,
-		ResultText:     result.Text,
-		ResultFilePath: resultFilePath,
-		ResultFormat:   filter.ResultFormat,
-		RawResult:      result.RawResult,
+		FilePath:          filePath,
+		ResultText:        resultText,
+		ResultHtml:        resultHtml,
+		ResultFileDocPath: resultFileDocPath,
+		ResultFilePdfPath: resultFilePdfPath,
+		RawResult:         result.RawResult,
+		UserId:            filter.UserId,
 	})
 	_, err = ConverterLogCreate(f, core.Db)
 
 	data = types.ConvertFile{
-		ResultFilePath: resultFilePath,
-		ResultText:     result.Text,
-		ResultFormat:   filter.ResultFormat,
+		ResultText:        resultText,
+		ResultHtml:        resultHtml,
+		ResultFileDocPath: resultFileDocPath,
+		ResultFilePdfPath: resultFilePdfPath,
+		Data:              result.Data,
 	}
 	return
 }
@@ -106,20 +129,6 @@ func convertInputFile(file multipart.File, header *multipart.FileHeader) (res []
 		break
 	default:
 		return []byte{}, getUnsupportedFileFormatError()
-	}
-
-	return
-}
-
-func createResultFileIfNeed(result stt_converter.Result, format string) (path string) {
-	//TODO: Implement creating file for format
-	switch format {
-	case "pdf":
-		path = "pdf_path"
-		break
-	case "doc":
-		path = "doc_path"
-		break
 	}
 
 	return

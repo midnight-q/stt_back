@@ -9,7 +9,6 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
-	"stt_back/common"
 	"stt_back/errors"
 )
 
@@ -77,10 +76,19 @@ type ResultData struct {
 	} `json:"result"`
 }
 
-type Result struct {
+type Data struct {
+	TimeStart int
+	TimeEnd   int
 	Text      string
+	RawText   string
+	Speaker   string
+	Emotion   string
+}
+
+type Result struct {
 	RawResult string
-	Data      ResultData
+	RawData   ResultData
+	Data      []Data
 }
 
 func ConvertSpeechToText(data []byte) (res Result, err error) {
@@ -110,12 +118,12 @@ func ConvertSpeechToText(data []byte) (res Result, err error) {
 		return Result{}, err
 	}
 
-	if response.StatusCode != 200 {
+	if response.StatusCode != 201 {
 		rawString, err := ioutil.ReadAll(response.Body)
 		if err != nil {
 			return Result{}, err
 		}
-		fmt.Println(string(rawString))
+		fmt.Println(string(rawString), response.StatusCode)
 
 		err = errors.New("Error in request to converter: " + string(rawString))
 		return Result{}, err
@@ -133,9 +141,29 @@ func ConvertSpeechToText(data []byte) (res Result, err error) {
 		return Result{}, err
 	}
 
-	res.Text = common.RandomString(20)
-	res.Data = resultData
+	res.RawData = resultData
 	res.RawResult = string(rawString)
 
+	for _, ner := range resultData.Result.Ner {
+		res.Data = append(res.Data, Data{
+			TimeStart: ner.StartTime,
+			TimeEnd:   ner.EndTime,
+			Text:      ner.Text,
+			// TODO: set RawText is text without punctuation
+			RawText: ner.Sent,
+			Speaker: ner.SpeakerName,
+			Emotion: getEmotionFromResult(resultData, ner.StartTime, ner.EndTime),
+		})
+	}
+
 	return
+}
+
+func getEmotionFromResult(data ResultData, start int, end int) string {
+	for _, emotion := range data.Result.Toxic {
+		if emotion.StartTime == start && emotion.EndTime == end {
+			return emotion.Sentiment.Label
+		}
+	}
+	return ""
 }

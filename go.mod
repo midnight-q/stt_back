@@ -10,4 +10,5 @@ require (
 	github.com/orcaman/writerseeker v0.0.0-20200621085525-1d3f536ff85e
 	github.com/rs/cors v1.7.0
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
+	golang.org/x/text v0.3.3
 )
