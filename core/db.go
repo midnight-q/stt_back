@@ -2,18 +2,16 @@ package core
 
 import (
 	"github.com/jinzhu/gorm"
-	"stt_back/settings"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"stt_back/settings"
 )
 
-const DbConnectString =
-    "host='" +          settings.DbHost +
-    "' port='" +        settings.DbPort +
-    "' user='" +	    settings.DbUser +
-    "' password='" +    settings.DbPass +
-    "' dbname='" +    	settings.DbName +
-    "' sslmode='disable'"
-
+const DbConnectString = "host='" + settings.DbHost +
+	"' port='" + settings.DbPort +
+	"' user='" + settings.DbUser +
+	"' password='" + settings.DbPass +
+	"' dbname='" + settings.DbName +
+	"' sslmode='disable'"
 
 var Db, DbErr = gorm.Open("postgres", DbConnectString)
 

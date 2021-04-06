@@ -1,24 +1,24 @@
 package bootstrap
 
 import (
-	"stt_back/dbmodels"
-	"stt_back/types"
-	"stt_back/core"
-	"stt_back/logic"
-	"stt_back/settings"
-	"strings"
+	"errors"
 	"fmt"
 	"os"
-	"errors"
+	"strings"
+	"stt_back/core"
+	"stt_back/dbmodels"
+	"stt_back/logic"
+	"stt_back/settings"
+	"stt_back/types"
 )
 
-func FillDBTestData()  {
+func FillDBTestData() {
 
 	if core.DbErr != nil {
 		fmt.Println("Error dabatabse connect", core.DbErr.Error())
 		os.Exit(0)
 	}
-    
+
 	isDropTables := false
 
 	if (len(os.Args) > 1 && os.Args[1] == "drop") ||
@@ -29,19 +29,19 @@ func FillDBTestData()  {
 	if isDropTables == true {
 
 		core.Db.DropTableIfExists(
-          //generator insert entity
-          &dbmodels.ConverterLog{},
-          &dbmodels.Language{},
-          &dbmodels.Region{},
-          &dbmodels.TranslateError{},
-          &dbmodels.CurrentUser{},
-          &dbmodels.Auth{},
-          &dbmodels.UserRole{},
-          &dbmodels.ResourceType{},
-          &dbmodels.Resource{},
-          &dbmodels.RoleResource{},
-          &dbmodels.Role{},
-          &dbmodels.User{},
+			//generator insert entity
+			&dbmodels.ConverterLog{},
+			&dbmodels.Language{},
+			&dbmodels.Region{},
+			&dbmodels.TranslateError{},
+			&dbmodels.CurrentUser{},
+			&dbmodels.Auth{},
+			&dbmodels.UserRole{},
+			&dbmodels.ResourceType{},
+			&dbmodels.Resource{},
+			&dbmodels.RoleResource{},
+			&dbmodels.Role{},
+			&dbmodels.User{},
 		)
 
 		fmt.Println("All tables removed")
@@ -49,19 +49,19 @@ func FillDBTestData()  {
 	}
 
 	core.Db.AutoMigrate(
-        //generator insert entity
-          &dbmodels.ConverterLog{},
-          &dbmodels.Language{},
-          &dbmodels.Region{},
-          &dbmodels.TranslateError{},
-          &dbmodels.CurrentUser{},
-          &dbmodels.Auth{},
-          &dbmodels.UserRole{},
-          &dbmodels.ResourceType{},
-          &dbmodels.Resource{},
-          &dbmodels.RoleResource{},
-          &dbmodels.Role{},
-          &dbmodels.User{},
+		//generator insert entity
+		&dbmodels.ConverterLog{},
+		&dbmodels.Language{},
+		&dbmodels.Region{},
+		&dbmodels.TranslateError{},
+		&dbmodels.CurrentUser{},
+		&dbmodels.Auth{},
+		&dbmodels.UserRole{},
+		&dbmodels.ResourceType{},
+		&dbmodels.Resource{},
+		&dbmodels.RoleResource{},
+		&dbmodels.Role{},
+		&dbmodels.User{},
 	)
 
 	// add fixtures
@@ -73,7 +73,7 @@ func FillDBTestData()  {
 func addRouteType() {
 
 	resourceType := logic.AssignResourceTypeDbFromType(types.ResourceType{
-		Id: settings.HttpRouteResourceType.Int(),
+		Id:   settings.HttpRouteResourceType.Int(),
 		Name: "Route",
 	})
 	core.Db.Model(dbmodels.ResourceType{}).FirstOrCreate(&resourceType)
@@ -84,19 +84,19 @@ func addUser() {
 	var count int
 
 	adminRole := dbmodels.Role{
-		ID:			 settings.AdminRoleId.Int(),
+		ID:          settings.AdminRoleId.Int(),
 		Name:        "Admin",
 		Description: "Administrator",
 	}
 	core.Db.Where(adminRole).FirstOrCreate(&adminRole)
 
 	userRole := dbmodels.Role{
-		ID:			 settings.UserRoleId.Int(),
+		ID:          settings.UserRoleId.Int(),
 		Name:        "User",
 		Description: "Application user",
 	}
 	core.Db.Where(userRole).FirstOrCreate(&userRole)
-    core.Db.Model(dbmodels.User{}).Count(&count)
+	core.Db.Model(dbmodels.User{}).Count(&count)
 
 	if count < 1 {
 
@@ -115,58 +115,58 @@ func addUser() {
 		setRole(user.ID, settings.UserRoleId.Int())
 	}
 
-    AddAdminResources(adminRole.ID)
+	AddAdminResources(adminRole.ID)
 	AddUserResources(userRole.ID)
 }
 
 func setRole(userId int, roleId int) {
 
 	userRole := dbmodels.UserRole{
-		UserId:    userId,
-		RoleId:    roleId,
+		UserId: userId,
+		RoleId: roleId,
 	}
 	core.Db.Model(dbmodels.UserRole{}).FirstOrCreate(&userRole, "user_id = ? AND role_id = ?", userId, roleId)
 }
 
 func AddAdminResources(adminRoleId int) {
 
-    // ADD SPECIAL ADMIN ROLES HERE. Otherwise admin roles will take full access to routes  
+	// ADD SPECIAL ADMIN ROLES HERE. Otherwise admin roles will take full access to routes
 
-    for _, route := range settings.RoutesArray {
+	for _, route := range settings.RoutesArray {
 		err := setRoleAccess(adminRoleId, route, types.Access{
-			Find:         true,
-			Read:         true,
-			Create:       true,
-			Update:       true,
-			Delete:       true,
-			FindOrCreate: true,
+			Find:           true,
+			Read:           true,
+			Create:         true,
+			Update:         true,
+			Delete:         true,
+			FindOrCreate:   true,
 			UpdateOrCreate: true,
 		})
 
 		if err != nil {
 			fmt.Println(err)
 		}
-    }
+	}
 
-    for _, route := range settings.ExtResources {
-        name := route
-        if strings.Count(name, "/") > 2 {
-            name = strings.ToLower(strings.Split(route, "/")[3])
-        }
-        dbModel := dbmodels.Resource{
-            Name:   name,
-            Code:   route,
-            TypeId: 1,
-        }
-        core.Db.Where(dbModel).FirstOrCreate(&dbModel)
-    }
+	for _, route := range settings.ExtResources {
+		name := route
+		if strings.Count(name, "/") > 2 {
+			name = strings.ToLower(strings.Split(route, "/")[3])
+		}
+		dbModel := dbmodels.Resource{
+			Name:   name,
+			Code:   route,
+			TypeId: 1,
+		}
+		core.Db.Where(dbModel).FirstOrCreate(&dbModel)
+	}
 }
 
 func AddUserResources(userRoleId int) {
 
 	// access user to me route
 	err := setRoleAccess(userRoleId, settings.CurrentUserRoute, types.Access{
-		Read:			true,
+		Read: true,
 	})
 
 	if err != nil {
@@ -188,14 +188,14 @@ func setRoleAccess(roleId int, route string, access types.Access) error {
 		core.Db.Where(dbModel).FirstOrCreate(&dbModel)
 
 		roleResource := logic.AssignRoleResourceDbFromType(types.RoleResource{
-			RoleId:       roleId,
-			ResourceId:   dbModel.ID,
-			Find:         access.Find,
-			Read:         access.Read,
-			Create:       access.Create,
-			Update:       access.Update,
-			Delete:       access.Delete,
-			FindOrCreate: access.FindOrCreate,
+			RoleId:         roleId,
+			ResourceId:     dbModel.ID,
+			Find:           access.Find,
+			Read:           access.Read,
+			Create:         access.Create,
+			Update:         access.Update,
+			Delete:         access.Delete,
+			FindOrCreate:   access.FindOrCreate,
 			UpdateOrCreate: access.UpdateOrCreate,
 		})
 		core.Db.Model(dbmodels.RoleResource{}).FirstOrCreate(&roleResource, "role_id = ? AND resource_id = ?", roleId, dbModel.ID)

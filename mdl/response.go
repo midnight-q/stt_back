@@ -1,38 +1,37 @@
 package mdl
 
 type Response struct {
-	Status			int
-	Error			bool
-	ErrorMessage	string
-	Data		interface{}
+	Status       int
+	Error        bool
+	ErrorMessage string
+	Data         interface{}
 }
 
 type ResponseFind struct {
-	List 	interface{}
-	Total	int
+	List  interface{}
+	Total int
 }
 
 type ResponseCreate struct {
-	Model 	interface{}
+	Model interface{}
 }
 
 type ResponseRead struct {
-	Model 	interface{}
+	Model interface{}
 }
 
 type ResponseUpdate struct {
-	Model 	interface{}
+	Model interface{}
 }
 
 type ResponseDelete struct {
-	IsSuccess	bool
+	IsSuccess bool
 }
 
 type ResponseFindOrCreate struct {
-	Model 	interface{}
+	Model interface{}
 }
 
 type ResponseUpdateOrCreate struct {
-	Model 	interface{}
+	Model interface{}
 }
-

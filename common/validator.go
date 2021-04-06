@@ -1,23 +1,23 @@
 package common
 
 import (
-	"regexp"
 	"reflect"
+	"regexp"
 	"runtime"
 	"strconv"
 )
 
 func ValidateEmail(email string) bool {
-    Re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-    return Re.MatchString(email)
+	Re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	return Re.MatchString(email)
 }
 
 func ValidateMobile(phone string) bool {
-    Re := regexp.MustCompile(`^[+][0-9]{11,}`)
-    return Re.MatchString(phone)
+	Re := regexp.MustCompile(`^[+][0-9]{11,}`)
+	return Re.MatchString(phone)
 }
 
-func InArray (item interface{}, array interface{}) bool {
+func InArray(item interface{}, array interface{}) bool {
 
 	rt := reflect.TypeOf(array)
 
@@ -64,7 +64,6 @@ func checkInArray(item interface{}, array interface{}) bool {
 	return false
 }
 
-
 func getFrame(skipFrames int) runtime.Frame {
 	// We need the frame at index skipFrames+2, since we never want runtime.Callers and getFrame
 	targetFrameIndex := skipFrames + 2
@@ -93,7 +92,6 @@ func MyCaller() string {
 	// Skip GetCallerFunctionName and the function to get the caller of
 	return getFrame(2).Function
 }
-
 
 func UniqueStringArray(slice []string) []string {
 	// create a map with all the values as key
@@ -149,4 +147,3 @@ func StringArrayToIntArray(in []string) (res []int) {
 	}
 	return
 }
-

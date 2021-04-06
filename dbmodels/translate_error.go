@@ -1,26 +1,23 @@
 package dbmodels
 
 import (
-    "time"
-    
+	"time"
 )
 
 type TranslateError struct {
-
-    ID        int       `gorm:"primary_key"`
-    Code int
+	ID           int `gorm:"primary_key"`
+	Code         int
 	LanguageCode string
-	Translate string
+	Translate    string
 	//TranslateError remove this line for disable generator functionality
 
-    CreatedAt time.Time
-    UpdatedAt time.Time
-    DeletedAt *time.Time `sql:"index" json:"-"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index" json:"-"`
 
-    validator
+	validator
 }
 
 func (translateError *TranslateError) Validate() {
-    //Validate remove this line for disable generator functionality
+	//Validate remove this line for disable generator functionality
 }
-

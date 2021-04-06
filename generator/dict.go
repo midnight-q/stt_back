@@ -4,12 +4,12 @@ package generator
 
 import (
 	"io/ioutil"
+	"math"
 	"math/rand"
 	"os"
+	"strconv"
 	"strings"
 	"time"
-	"math"
-	"strconv"
 )
 
 var Babbler1 = NewBabbler(1)
@@ -18,7 +18,7 @@ var Babbler3 = NewBabbler(3)
 var Babbler100 = NewBabbler(100)
 
 func randate() time.Time {
-	
+
 	min := time.Date(1970, 1, 0, 0, 0, 0, 0, time.UTC).Unix()
 	max := time.Date(2070, 1, 0, 0, 0, 0, 0, time.UTC).Unix()
 	delta := max - min
@@ -47,7 +47,7 @@ func Float64n(precision int) float64 {
 
 	output := math.Pow(10, float64(precision))
 	rnd := rand.Float64()
-	return float64(round(rnd * output)) / output
+	return float64(round(rnd*output)) / output
 }
 
 func init() {
@@ -55,9 +55,9 @@ func init() {
 }
 
 type Babbler struct {
-	Count int
+	Count     int
 	Separator string
-	Words []string
+	Words     []string
 }
 
 func NewBabbler(count int) (b Babbler) {
@@ -74,7 +74,7 @@ func NewBabbler(count int) (b Babbler) {
 
 func (this Babbler) Babble() string {
 	pieces := []string{}
-	for i := 0; i < this.Count ; i++ {
+	for i := 0; i < this.Count; i++ {
 		pieces = append(pieces, this.Words[rand.Int()%len(this.Words)])
 	}
 
@@ -84,7 +84,7 @@ func (this Babbler) Babble() string {
 func readAvailableDictionary() (words []string) {
 	file, err := os.Open("/usr/share/dict/words")
 	if err != nil {
-		panic("Dictionary file for generate string examples not found. " +  err.Error())
+		panic("Dictionary file for generate string examples not found. " + err.Error())
 	}
 
 	bytes, err := ioutil.ReadAll(file)

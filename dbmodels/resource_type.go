@@ -1,24 +1,21 @@
 package dbmodels
 
 import (
-    "time"
-    
+	"time"
 )
 
 type ResourceType struct {
-
-    ID        int       `gorm:"primary_key"`
-    Name string
+	ID   int `gorm:"primary_key"`
+	Name string
 	//ResourceType remove this line for disable generator functionality
 
-    CreatedAt time.Time
-    UpdatedAt time.Time
-    DeletedAt *time.Time `sql:"index" json:"-"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index" json:"-"`
 
-    validator
+	validator
 }
 
 func (resourceType *ResourceType) Validate() {
-    //Validate remove this line for disable generator functionality
+	//Validate remove this line for disable generator functionality
 }
-
