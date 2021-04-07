@@ -161,6 +161,7 @@ func Router() http.Handler {
     //router-generator here dont touch this line
 
     handler := cors.New(cors.Options{
+        AllowedOrigins: []string{"*"},
         AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
         AllowedHeaders: []string{"token", "content-type"},
     }).Handler(router)
