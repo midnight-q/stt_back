@@ -16,7 +16,6 @@ func ConvertFileCreate(w http.ResponseWriter, httpRequest *http.Request) {
 		ErrResponse(w, err, http.StatusBadRequest, requestDto)
 		return
 	}
-
 	if !requestDto.IsAuthorized() {
 		AuthErr(w, requestDto)
 		return

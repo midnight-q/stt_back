@@ -38,6 +38,10 @@ func ConverterLogFind(filter types.ConverterLogFilter) (result []types.Converter
 		criteria = criteria.Where("id not in (?)", filterExceptIds)
 	}
 
+	if filter.UserId > 0 {
+		criteria = criteria.Where(dbmodels.ConverterLog{UserId: filter.UserId})
+	}
+
 	//if len(filter.Search) > 0 {
 	//
 	//    s := ("%" + filter.Search + "%")

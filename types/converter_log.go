@@ -2,6 +2,7 @@ package types
 
 import (
 	"net/http"
+	"strconv"
 	"stt_back/settings"
 )
 
@@ -29,6 +30,7 @@ type ConverterLogFilter struct {
 	model ConverterLog
 	list  []ConverterLog
 	//ConverterLogFilter remove this line for disable generator functionality
+	UserId int
 
 	AbstractFilter
 }
@@ -41,6 +43,7 @@ func GetConverterLogFilter(request *http.Request, functionType string) (filter C
 		return filter, err
 	}
 	//filter.TestFilter, _ = strconv.Atoi(request.FormValue("TestFilter"))
+	filter.UserId, _ = strconv.Atoi(request.FormValue("UserId"))
 
 	//GetConverterLogFilter remove this line for disable generator functionality
 
