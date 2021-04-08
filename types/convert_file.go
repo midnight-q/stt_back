@@ -16,6 +16,7 @@ type ConvertFile struct {
 	ResultHtml        string
 	ResultFilePdfPath string
 	ResultFileDocPath string
+	SourceFilePath    string
 	//ConvertFile remove this line for disable generator functionality
 
 	validator
@@ -29,8 +30,8 @@ type ConvertFileFilter struct {
 	model ConvertFile
 	list  []ConvertFile
 
-	File   multipart.File
-	Header *multipart.FileHeader
+	File         multipart.File
+	Header       *multipart.FileHeader
 	FileSource   multipart.File
 	HeaderSource *multipart.FileHeader
 
@@ -53,7 +54,7 @@ func GetConvertFileFilter(request *http.Request, functionType string) (filter Co
 		if err != nil {
 			return filter, err
 		}
-		filter.FileSource, filter.HeaderSource, _ = request.FormFile("data")
+		filter.FileSource, filter.HeaderSource, _ = request.FormFile("dataSource")
 
 		filter.TimeFrame, _ = strconv.Atoi(request.FormValue("TimeFrame"))
 		filter.UserId, _ = strconv.Atoi(request.FormValue("UserId"))

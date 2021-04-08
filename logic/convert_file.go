@@ -88,6 +88,7 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		ResultFileDocPath: resultFileDocPath,
 		ResultFilePdfPath: resultFilePdfPath,
 		Data:              result.Data,
+		SourceFilePath:    sourceFilePath,
 	}
 	return
 }
