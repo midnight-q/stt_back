@@ -2,8 +2,10 @@ package stt_converter
 
 import (
 	"fmt"
+	wkhtml "github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"sort"
 	"strings"
+	"stt_back/services/file_storage"
 )
 
 type Params struct {
@@ -37,8 +39,35 @@ func ConvertDataToHtml(data []Data, params Params) (res string) {
 }
 
 func ConvertDataToPdf(data []Data, params Params) (path string) {
+	html := ConvertDataToHtml(data, params)
+	html = fmt.Sprintf(`<html>
+									<head>
+									  <title>My First HTML</title>
+									  <meta charset="UTF-8">
+									</head>
+									<body>
+										<link href='http://fonts.googleapis.com/css?family=Jolly+Lodger' rel='stylesheet' type='text/css'>
+										 <style type = "text/css">
+											p { font-family: 'Roboto', sans-serif;; }
+										</style>
+										%s
+									</body>
+								</html>`, html)
+	pdfg, err :=  wkhtml.NewPDFGenerator()
+	if err != nil{
+		fmt.Println("Error in create pdf:", err)
+	}
 
-	return path
+	pdfg.AddPage(wkhtml.NewPageReader(strings.NewReader(html)))
+	// Create PDF document in internal buffer
+	err = pdfg.Create()
+	if err != nil {
+		fmt.Println("Error in create pdf:", err)
+	}
+
+	b := pdfg.Bytes()
+	path, _ = file_storage.CreateFileInLocalStorage(b, ".pdf")
+	return
 }
 
 func ConvertDataToDoc(data []Data, params Params) (path string) {
@@ -50,6 +79,25 @@ func applyTextTemplate(data Data, params Params) string {
 	str := data.RawText
 	if params.IsShowPunctuation {
 		str = data.Text
+	}
+	if params.IsShowTag && params.IsShowPunctuation {
+		res := ""
+		for i, s := range strings.Split(str, "") {
+			isFind := false
+			for _, tag := range data.Tags {
+				if i == tag.Start {
+					res += "[" + tag.Name + " " + s
+					isFind = true
+				} else if i == tag.End {
+					res += s + "]"
+					isFind = true
+				}
+			}
+			if !isFind {
+				res += s
+			}
+		}
+		str = res
 	}
 	if params.IsShowSpeaker || params.IsShowEmotion {
 		str = ":" + str
@@ -64,11 +112,31 @@ func applyTextTemplate(data Data, params Params) string {
 }
 
 func applyHtmlTemplate(data Data, params Params) string {
-	str := fmt.Sprintf("<div>%s</div>", data.RawText)
+	str := data.RawText
 	if params.IsShowPunctuation {
-		str = fmt.Sprintf("<div>%s</div>", data.Text)
-
+		str = data.Text
 	}
+	if params.IsShowTag && params.IsShowPunctuation {
+		res := ""
+		for i, s := range strings.Split(str, "") {
+			isFind := false
+			for _, tag := range data.Tags {
+				if i == tag.Start {
+					res += "<b><i>" + tag.Name + "</i> " + s
+					isFind = true
+				} else if i == tag.End {
+					res += s + "</b>"
+					isFind = true
+				}
+			}
+			if !isFind {
+				res += s
+			}
+		}
+		str = res
+	}
+	str = fmt.Sprintf("<div>%s</div>", str)
+
 	if params.IsShowEmotion {
 		str = fmt.Sprintf("<div>%s</div>", data.Emotion) + str
 	}

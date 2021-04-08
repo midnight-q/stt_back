@@ -46,8 +46,8 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 	}
 	resultText := stt_converter.ConvertDataToText(result.Data, converterParams)
 	resultHtml := stt_converter.ConvertDataToHtml(result.Data, converterParams)
-	resultFileDocPath := stt_converter.ConvertDataToPdf(result.Data, converterParams) // TODO: Implement this
-	resultFilePdfPath := stt_converter.ConvertDataToDoc(result.Data, converterParams) // TODO: Implement this
+	resultFilePdfPath := stt_converter.ConvertDataToPdf(result.Data, converterParams) // TODO: Implement this
+	resultFileDocPath := stt_converter.ConvertDataToDoc(result.Data, converterParams) // TODO: Implement this
 
 	filePath, err := file_storage.CreateFileInLocalStorage(inputFile, ".wav")
 	if err != nil {

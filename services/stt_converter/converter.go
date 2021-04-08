@@ -20,13 +20,12 @@ type ResultData struct {
 			StartTime   int    `json:"start_time"`
 		} `json:"diarization"`
 		Ner []struct {
-			EndTime       int `json:"end_time"`
-			NamedEntities struct {
-			} `json:"named_entities"`
-			Sent        string `json:"sent"`
-			SpeakerName string `json:"speaker_name"`
-			StartTime   int    `json:"start_time"`
-			Text        string `json:"text"`
+			EndTime       int                `json:"end_time"`
+			NamedEntities map[string][][]int `json:"named_entities"`
+			Sent          string             `json:"sent"`
+			SpeakerName   string             `json:"speaker_name"`
+			StartTime     int                `json:"start_time"`
+			Text          string             `json:"text"`
 		} `json:"ner"`
 		Re []struct {
 			EndTime       int `json:"end_time"`
@@ -83,6 +82,13 @@ type Data struct {
 	RawText   string
 	Speaker   string
 	Emotion   string
+	Tags      []Tag
+}
+
+type Tag struct {
+	Name  string
+	Start int
+	End   int
 }
 
 type Result struct {
@@ -149,15 +155,29 @@ func ConvertSpeechToText(data []byte) (res Result, err error) {
 			TimeStart: ner.StartTime,
 			TimeEnd:   ner.EndTime,
 			Text:      ner.Text,
-			// TODO: set RawText is text without punctuation
-			RawText: ner.Sent,
-			Speaker: ner.SpeakerName,
-			Emotion: getEmotionFromResult(resultData, ner.StartTime, ner.EndTime),
+			RawText:   ner.Sent,
+			Speaker:   ner.SpeakerName,
+			Emotion:   getEmotionFromResult(resultData, ner.StartTime, ner.EndTime),
+			Tags:      covertTags(ner.NamedEntities),
 		})
 	}
 
 	return
 }
+
+func covertTags(entities map[string][][]int) (res []Tag) {
+	for name, params := range entities {
+		for _, param := range params {
+			res = append(res, Tag{
+				Name:  name,
+				Start: param[0],
+				End:   param[1],
+			})
+		}
+	}
+	return
+}
+
 
 func getEmotionFromResult(data ResultData, start int, end int) string {
 	for _, emotion := range data.Result.Toxic {
