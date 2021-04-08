@@ -3,9 +3,12 @@ package stt_converter
 import (
 	"fmt"
 	wkhtml "github.com/SebastiaanKlippert/go-wkhtmltopdf"
+	"github.com/orcaman/writerseeker"
+	"io/ioutil"
 	"sort"
 	"strings"
 	"stt_back/services/file_storage"
+	"github.com/gingfrederik/docx"
 )
 
 type Params struct {
@@ -53,8 +56,8 @@ func ConvertDataToPdf(data []Data, params Params) (path string) {
 										%s
 									</body>
 								</html>`, html)
-	pdfg, err :=  wkhtml.NewPDFGenerator()
-	if err != nil{
+	pdfg, err := wkhtml.NewPDFGenerator()
+	if err != nil {
 		fmt.Println("Error in create pdf:", err)
 	}
 
@@ -71,6 +74,25 @@ func ConvertDataToPdf(data []Data, params Params) (path string) {
 }
 
 func ConvertDataToDoc(data []Data, params Params) (path string) {
+	resultArr := []string{}
+	sort.Slice(data, func(i, j int) bool {
+		return data[i].TimeStart < data[j].TimeStart
+	})
+	for _, d := range data {
+		resultArr = append(resultArr, applyTextTemplate(d, params))
+	}
+	f := docx.NewFile()
+	for _, line := range resultArr {
+		para := f.AddParagraph()
+		para.AddText(line)
+		_= f.AddParagraph()
+	}
+
+	buf := writerseeker.WriterSeeker{}
+	f.Write(&buf)
+	b, _ := ioutil.ReadAll(buf.Reader())
+
+	path, _ = file_storage.CreateFileInLocalStorage(b, ".docx")
 
 	return path
 }
@@ -122,10 +144,10 @@ func applyHtmlTemplate(data Data, params Params) string {
 			isFind := false
 			for _, tag := range data.Tags {
 				if i == tag.Start {
-					res += "<b><i>" + tag.Name + "</i> " + s
+					res += "<strong><em>" + tag.Name + "</em> " + s
 					isFind = true
 				} else if i == tag.End {
-					res += s + "</b>"
+					res += s + "</strong>"
 					isFind = true
 				}
 			}
