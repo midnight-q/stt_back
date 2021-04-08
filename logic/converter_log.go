@@ -239,6 +239,7 @@ func ConverterLogUpdate(filter types.ConverterLogFilter, query *gorm.DB) (data t
 	updateModel.ResultFileDocPath = newModel.ResultFileDocPath
 	updateModel.ResultFilePdfPath = newModel.ResultFilePdfPath
 	updateModel.UserId = newModel.UserId
+	updateModel.SourceFilePath = newModel.SourceFilePath
 	//updateModel.Field remove this line for disable generator functionality
 
 	updateModel.Validate()
@@ -392,6 +393,8 @@ func AssignConverterLogTypeFromDb(dbConverterLog dbmodels.ConverterLog) types.Co
 		ResultFileDocPath: dbConverterLog.ResultFileDocPath,
 		ResultFilePdfPath: dbConverterLog.ResultFilePdfPath,
 		UserId:            dbConverterLog.UserId,
+		CreatedAt:         dbConverterLog.CreatedAt,
+		SourceFilePath: dbConverterLog.SourceFilePath,
 		//AssignConverterLogTypeFromDb.Field remove this line for disable generator functionality
 	}
 }
@@ -411,6 +414,7 @@ func AssignConverterLogDbFromType(typeModel types.ConverterLog) dbmodels.Convert
 		ResultFileDocPath: typeModel.ResultFileDocPath,
 		ResultFilePdfPath: typeModel.ResultFilePdfPath,
 		UserId:            typeModel.UserId,
+		SourceFilePath: typeModel.SourceFilePath,
 		//AssignConverterLogDbFromType.Field remove this line for disable generator functionality
 	}
 }

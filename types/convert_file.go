@@ -31,6 +31,8 @@ type ConvertFileFilter struct {
 
 	File   multipart.File
 	Header *multipart.FileHeader
+	FileSource   multipart.File
+	HeaderSource *multipart.FileHeader
 
 	TimeFrame         int
 	IsShowEmotion     bool
@@ -51,6 +53,8 @@ func GetConvertFileFilter(request *http.Request, functionType string) (filter Co
 		if err != nil {
 			return filter, err
 		}
+		filter.FileSource, filter.HeaderSource, _ = request.FormFile("data")
+
 		filter.TimeFrame, _ = strconv.Atoi(request.FormValue("TimeFrame"))
 		filter.UserId, _ = strconv.Atoi(request.FormValue("UserId"))
 		filter.IsShowEmotion, _ = strconv.ParseBool(request.FormValue("IsShowEmotion"))

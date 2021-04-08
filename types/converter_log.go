@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"strconv"
 	"stt_back/settings"
-)
+"time"
 
+)
 type ConverterLog struct {
 	Id                int
 	FilePath          string
@@ -17,6 +18,8 @@ type ConverterLog struct {
 	ResultFileDocPath string
 	ResultFilePdfPath string
 	UserId            int
+	CreatedAt         time.Time
+	SourceFilePath string
 	//ConverterLog remove this line for disable generator functionality
 
 	validator

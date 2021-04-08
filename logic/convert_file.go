@@ -1,8 +1,10 @@
 package logic
 
 import (
+	"fmt"
 	"io/ioutil"
 	"mime/multipart"
+	"path/filepath"
 	"stt_back/common"
 	"stt_back/core"
 	"stt_back/errors"
@@ -54,6 +56,19 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		return types.ConvertFile{}, err
 	}
 
+	sourceFilePath := ""
+	if filter.HeaderSource != nil {
+		fileExt := filepath.Ext(filter.HeaderSource.Filename)
+		data, e := ioutil.ReadAll(filter.FileSource)
+		if e == nil {
+			path, e := file_storage.CreateFileInLocalStorage(data, fileExt)
+			if e != nil {
+				fmt.Println("Error save source file:", e)
+			}
+			sourceFilePath = path
+		}
+	}
+
 	f := types.ConverterLogFilter{}
 	f.SetConverterLogModel(types.ConverterLog{
 		FilePath:          filePath,
@@ -63,6 +78,7 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		ResultFilePdfPath: resultFilePdfPath,
 		RawResult:         result.RawResult,
 		UserId:            filter.UserId,
+		SourceFilePath:    sourceFilePath,
 	})
 	_, err = ConverterLogCreate(f, core.Db)
 

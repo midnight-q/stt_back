@@ -15,6 +15,7 @@ type ConverterLog struct {
 	ResultFileDocPath string
 	ResultFilePdfPath string
 	UserId            int
+	SourceFilePath string
 	//ConverterLog remove this line for disable generator functionality
 
 	CreatedAt time.Time
