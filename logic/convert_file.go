@@ -1,11 +1,11 @@
 package logic
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
-	"mime/multipart"
+	"net/http"
 	"path/filepath"
-	"stt_back/common"
 	"stt_back/core"
 	"stt_back/errors"
 	"stt_back/services/file_storage"
@@ -29,8 +29,28 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		return types.ConvertFile{}, err
 	}
 
-	inputFile, err := convertInputFile(filter.File, filter.Header)
-	if err != nil {
+	var inputFile []byte
+	if filter.Header != nil {
+		ext := filepath.Ext(filter.Header.Filename)
+		b, err := ioutil.ReadAll(filter.File)
+		if err != nil {
+			return types.ConvertFile{}, err
+		}
+		inputFile, err = convertInputFile(bytes.NewReader(b), ext)
+		if err != nil {
+			return types.ConvertFile{}, err
+		}
+	} else if len(filter.DataUrl) > 0 {
+		b, ext, err := loadFileFormUrl(filter.DataUrl)
+		if err != nil {
+			return types.ConvertFile{}, err
+		}
+		inputFile, err = convertInputFile(bytes.NewReader(b), ext)
+		if err != nil {
+			return types.ConvertFile{}, err
+		}
+	} else {
+		err = errors.New("Not found file")
 		return types.ConvertFile{}, err
 	}
 	converterParams := stt_converter.Params{
@@ -45,7 +65,6 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 	if err != nil {
 		return types.ConvertFile{}, err
 	}
-
 
 	resultTextPath := stt_converter.ConvertDataToText(result.Data, converterParams)
 	resultHtmlPath := stt_converter.ConvertDataToHtml(result.Data, converterParams)
@@ -94,13 +113,30 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 	return
 }
 
+func loadFileFormUrl(url string) (res []byte, ext string, err error) {
+	ext = filepath.Ext(url)
+	if len(ext) < 4 {
+		err = errors.New("Unsupported file format")
+		return nil, "", err
+	}
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return nil, "", getUnsupportedFileFormatError()
+	}
+	res, err = ioutil.ReadAll(resp.Body)
+	return
+}
+
 func getUnsupportedFileFormatError() error {
 	return errors.NewErrorWithCode("Unsupported file format", errors.ErrorCodeUnsupportedFileFormat, "InputFilename")
 }
 
-func convertInputFile(file multipart.File, header *multipart.FileHeader) (res []byte, err error) {
-	fileFormat := common.GetFileFormatFromName(header.Filename)
-
+func convertInputFile(f *bytes.Reader, fileFormat string) (res []byte, err error) {
+	file := ioutil.NopCloser(f)
 	switch fileFormat {
 	case ".wav":
 		streamer, format, err := wav.Decode(file)

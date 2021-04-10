@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"mime/multipart"
 	"net/http"
 	"strconv"
@@ -41,6 +42,7 @@ type ConvertFileFilter struct {
 	IsShowTag         bool
 	IsShowPunctuation bool
 	UserId            int
+	DataUrl           string
 	//ConvertFileFilter remove this line for disable generator functionality
 
 	AbstractFilter
@@ -50,12 +52,14 @@ func GetConvertFileFilter(request *http.Request, functionType string) (filter Co
 
 	filter.request = request
 	if filter.IsFormDataContentType() {
+		filter.DataUrl = request.FormValue("DataUrl")
 		filter.File, filter.Header, err = request.FormFile("data")
-		if err != nil {
-			return filter, err
+		if len(filter.DataUrl) < 1 && err != nil {
+			fmt.Println("sdsdsd", err)
+			err = errors.New("Not found data or DataUrl")
+			return ConvertFileFilter{}, err
 		}
 		filter.FileSource, filter.HeaderSource, _ = request.FormFile("dataSource")
-
 		filter.TimeFrame, _ = strconv.Atoi(request.FormValue("TimeFrame"))
 		filter.UserId, _ = strconv.Atoi(request.FormValue("UserId"))
 		filter.IsShowEmotion, _ = strconv.ParseBool(request.FormValue("IsShowEmotion"))
