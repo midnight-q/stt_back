@@ -117,6 +117,9 @@ func ConvertDataToDoc(data []Data, params Params) (path string) {
 }
 
 func applyTextTemplate(data Data, params Params) string {
+	if data.IsTimeFrameLabel {
+		return fmt.Sprintf("[%s]", data.Text)
+	}
 	str := data.RawText
 	if params.IsShowPunctuation {
 		str = data.Text
@@ -153,6 +156,9 @@ func applyTextTemplate(data Data, params Params) string {
 }
 
 func applyHtmlTemplate(data Data, params Params) string {
+	if data.IsTimeFrameLabel {
+		return fmt.Sprintf("<p>[%s]</p>", data.Text)
+	}
 	str := data.RawText
 	if params.IsShowPunctuation {
 		str = data.Text

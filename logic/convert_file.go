@@ -33,12 +33,6 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 	if err != nil {
 		return types.ConvertFile{}, err
 	}
-
-	result, err := stt_converter.ConvertSpeechToText(inputFile)
-	if err != nil {
-		return types.ConvertFile{}, err
-	}
-
 	converterParams := stt_converter.Params{
 		TimeFrame:         filter.TimeFrame,
 		IsShowEmotion:     filter.IsShowEmotion,
@@ -46,6 +40,13 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		IsShowTag:         filter.IsShowTag,
 		IsShowPunctuation: filter.IsShowPunctuation,
 	}
+
+	result, err := stt_converter.ConvertSpeechToText(inputFile, converterParams)
+	if err != nil {
+		return types.ConvertFile{}, err
+	}
+
+
 	resultTextPath := stt_converter.ConvertDataToText(result.Data, converterParams)
 	resultHtmlPath := stt_converter.ConvertDataToHtml(result.Data, converterParams)
 	resultFilePdfPath := stt_converter.ConvertDataToPdf(result.Data, converterParams)

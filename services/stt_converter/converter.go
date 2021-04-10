@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 	"stt_back/errors"
+	"time"
 )
 
 type ResultData struct {
@@ -78,13 +79,14 @@ type ResultData struct {
 }
 
 type Data struct {
-	TimeStart int
-	TimeEnd   int
-	Text      string
-	RawText   string
-	Speaker   string
-	Emotion   string
-	Tags      []Tag
+	TimeStart        int
+	TimeEnd          int
+	Text             string
+	RawText          string
+	Speaker          string
+	Emotion          string
+	Tags             []Tag
+	IsTimeFrameLabel bool
 }
 
 type Tag struct {
@@ -99,7 +101,7 @@ type Result struct {
 	Data      []Data
 }
 
-func ConvertSpeechToText(data []byte) (res Result, err error) {
+func ConvertSpeechToText(data []byte, params Params) (res Result, err error) {
 	reader := bytes.NewReader(data)
 
 	body := &bytes.Buffer{}
@@ -152,22 +154,37 @@ func ConvertSpeechToText(data []byte) (res Result, err error) {
 	res.RawData = resultData
 	res.RawResult = string(rawString)
 
+	lastPhrase := 0
 	for _, ner := range resultData.Result.Ner {
+		if lastPhrase < ner.StartTime {
+			lastPhrase = ner.StartTime
+		}
 		res.Data = append(res.Data, Data{
 			TimeStart: ner.StartTime,
 			TimeEnd:   ner.EndTime,
 			Text:      ner.Text,
-			RawText:   ClearString(ner.Sent),
+			RawText:   clearString(ner.Sent),
 			Speaker:   ner.SpeakerName,
 			Emotion:   getEmotionFromResult(resultData, ner.StartTime, ner.EndTime),
 			Tags:      covertTags(ner.NamedEntities),
 		})
 	}
 
+	for i := 0; i < lastPhrase/(params.TimeFrame*1000); i++ {
+		t := time.Time{}
+		t = t.Add(time.Duration(params.TimeFrame * i * int(time.Second)))
+		res.Data = append(res.Data, Data{
+			TimeStart:        params.TimeFrame * i * 1000,
+			Text:             t.Format("04:05"),
+			RawText:          t.Format("04:05"),
+			IsTimeFrameLabel: true,
+		})
+	}
+
 	return
 }
 
-func ClearString(sent string) string {
+func clearString(sent string) string {
 	reg, err := regexp.Compile("[^a-zA-Z0-9а-яА-ЯЁё\\- ]+")
 	if err != nil {
 		log.Fatal(err)
@@ -188,7 +205,6 @@ func covertTags(entities map[string][][]int) (res []Tag) {
 	}
 	return
 }
-
 
 func getEmotionFromResult(data ResultData, start int, end int) string {
 	for _, emotion := range data.Result.Toxic {

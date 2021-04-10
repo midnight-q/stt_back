@@ -24,6 +24,12 @@ func StaticFileLoader(w http.ResponseWriter, httpRequest *http.Request) {
 	if file_ext == ".docx"{
 		w.Header().Set("Content-Type", "application/docx")
 	}
+	if file_ext == ".txt"{
+		w.Header().Set("Content-Type", "text")
+	}
+	if file_ext == ".html"{
+		w.Header().Set("Content-Type", "text/html")
+	}
 	w.Header().Set("Content-Length", strconv.Itoa(len(data)))
 	if _, err := w.Write(data); err != nil {
 		log.Println("unable to write file")
