@@ -231,11 +231,11 @@ func ConverterLogUpdate(filter types.ConverterLogFilter, query *gorm.DB) (data t
 	//updateModel.Some = newModel.Some
 
 	updateModel.FilePath = newModel.FilePath
-	updateModel.ResultText = newModel.ResultText
+	updateModel.ResultTextPath = newModel.ResultTextPath
 	updateModel.ResultFilePath = newModel.ResultFilePath
 	updateModel.ResultFormat = newModel.ResultFormat
 	updateModel.RawResult = newModel.RawResult
-	updateModel.ResultHtml = newModel.ResultHtml
+	updateModel.ResultHtmlPath = newModel.ResultHtmlPath
 	updateModel.ResultFileDocPath = newModel.ResultFileDocPath
 	updateModel.ResultFilePdfPath = newModel.ResultFilePdfPath
 	updateModel.UserId = newModel.UserId
@@ -385,11 +385,11 @@ func AssignConverterLogTypeFromDb(dbConverterLog dbmodels.ConverterLog) types.Co
 	return types.ConverterLog{
 		Id:                dbConverterLog.ID,
 		FilePath:          dbConverterLog.FilePath,
-		ResultText:        dbConverterLog.ResultText,
+		ResultTextPath:        dbConverterLog.ResultTextPath,
 		ResultFilePath:    dbConverterLog.ResultFilePath,
 		ResultFormat:      dbConverterLog.ResultFormat,
 		RawResult:         dbConverterLog.RawResult,
-		ResultHtml:        dbConverterLog.ResultHtml,
+		ResultHtmlPath:        dbConverterLog.ResultHtmlPath,
 		ResultFileDocPath: dbConverterLog.ResultFileDocPath,
 		ResultFilePdfPath: dbConverterLog.ResultFilePdfPath,
 		UserId:            dbConverterLog.UserId,
@@ -406,15 +406,15 @@ func AssignConverterLogDbFromType(typeModel types.ConverterLog) dbmodels.Convert
 	return dbmodels.ConverterLog{
 		ID:                typeModel.Id,
 		FilePath:          typeModel.FilePath,
-		ResultText:        typeModel.ResultText,
+		ResultTextPath:    typeModel.ResultTextPath,
 		ResultFilePath:    typeModel.ResultFilePath,
 		ResultFormat:      typeModel.ResultFormat,
 		RawResult:         typeModel.RawResult,
-		ResultHtml:        typeModel.ResultHtml,
+		ResultHtmlPath:    typeModel.ResultHtmlPath,
 		ResultFileDocPath: typeModel.ResultFileDocPath,
 		ResultFilePdfPath: typeModel.ResultFilePdfPath,
 		UserId:            typeModel.UserId,
-		SourceFilePath: typeModel.SourceFilePath,
+		SourceFilePath:    typeModel.SourceFilePath,
 		//AssignConverterLogDbFromType.Field remove this line for disable generator functionality
 	}
 }

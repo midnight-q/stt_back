@@ -157,7 +157,7 @@ func ConvertSpeechToText(data []byte) (res Result, err error) {
 			TimeStart: ner.StartTime,
 			TimeEnd:   ner.EndTime,
 			Text:      ner.Text,
-			RawText:   clearString(ner.Sent),
+			RawText:   ClearString(ner.Sent),
 			Speaker:   ner.SpeakerName,
 			Emotion:   getEmotionFromResult(resultData, ner.StartTime, ner.EndTime),
 			Tags:      covertTags(ner.NamedEntities),
@@ -167,8 +167,8 @@ func ConvertSpeechToText(data []byte) (res Result, err error) {
 	return
 }
 
-func clearString(sent string) string {
-	reg, err := regexp.Compile("[^a-zA-Z0-9а-яА-Я ]+")
+func ClearString(sent string) string {
+	reg, err := regexp.Compile("[^a-zA-Z0-9а-яА-ЯЁё\\- ]+")
 	if err != nil {
 		log.Fatal(err)
 	}

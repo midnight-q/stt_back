@@ -46,8 +46,8 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		IsShowTag:         filter.IsShowTag,
 		IsShowPunctuation: filter.IsShowPunctuation,
 	}
-	resultText := stt_converter.ConvertDataToText(result.Data, converterParams)
-	resultHtml := stt_converter.ConvertDataToHtml(result.Data, converterParams)
+	resultTextPath := stt_converter.ConvertDataToText(result.Data, converterParams)
+	resultHtmlPath := stt_converter.ConvertDataToHtml(result.Data, converterParams)
 	resultFilePdfPath := stt_converter.ConvertDataToPdf(result.Data, converterParams)
 	resultFileDocPath := stt_converter.ConvertDataToDoc(result.Data, converterParams) // TODO: Implement this
 
@@ -72,8 +72,8 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 	f := types.ConverterLogFilter{}
 	f.SetConverterLogModel(types.ConverterLog{
 		FilePath:          filePath,
-		ResultText:        resultText,
-		ResultHtml:        resultHtml,
+		ResultTextPath:    resultTextPath,
+		ResultHtmlPath:    resultHtmlPath,
 		ResultFileDocPath: resultFileDocPath,
 		ResultFilePdfPath: resultFilePdfPath,
 		RawResult:         result.RawResult,
@@ -83,8 +83,8 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 	_, err = ConverterLogCreate(f, core.Db)
 
 	data = types.ConvertFile{
-		ResultText:        resultText,
-		ResultHtml:        resultHtml,
+		ResultTextPath:    resultTextPath,
+		ResultHtmlPath:    resultHtmlPath,
 		ResultFileDocPath: resultFileDocPath,
 		ResultFilePdfPath: resultFilePdfPath,
 		Data:              result.Data,

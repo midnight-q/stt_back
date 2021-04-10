@@ -11,9 +11,9 @@ import (
 
 type ConvertFile struct {
 	Id                int
-	ResultText        string
 	Data              []stt_converter.Data
-	ResultHtml        string
+	ResultHtmlPath    string
+	ResultTextPath    string
 	ResultFilePdfPath string
 	ResultFileDocPath string
 	SourceFilePath    string

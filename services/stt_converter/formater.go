@@ -2,13 +2,14 @@ package stt_converter
 
 import (
 	"fmt"
-	wkhtml "github.com/SebastiaanKlippert/go-wkhtmltopdf"
-	"github.com/orcaman/writerseeker"
 	"io/ioutil"
 	"sort"
 	"strings"
 	"stt_back/services/file_storage"
+
+	wkhtml "github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/gingfrederik/docx"
+	"github.com/orcaman/writerseeker"
 )
 
 type Params struct {
@@ -19,7 +20,7 @@ type Params struct {
 	IsShowPunctuation bool
 }
 
-func ConvertDataToText(data []Data, params Params) (res string) {
+func ConvertDataToText(data []Data, params Params) (path string) {
 	resultArr := []string{}
 	sort.Slice(data, func(i, j int) bool {
 		return data[i].TimeStart < data[j].TimeStart
@@ -27,10 +28,12 @@ func ConvertDataToText(data []Data, params Params) (res string) {
 	for _, d := range data {
 		resultArr = append(resultArr, applyTextTemplate(d, params))
 	}
-	return strings.Join(resultArr, "\n")
+	resultText := strings.Join(resultArr, "\n")
+	path, _ = file_storage.CreateFileInLocalStorage([]byte(resultText), ".txt")
+	return path
 }
 
-func ConvertDataToHtml(data []Data, params Params) (res string) {
+func ConvertDataToHtml(data []Data, params Params) (path string) {
 	resultArr := []string{}
 	sort.Slice(data, func(i, j int) bool {
 		return data[i].TimeStart < data[j].TimeStart
@@ -38,14 +41,30 @@ func ConvertDataToHtml(data []Data, params Params) (res string) {
 	for _, d := range data {
 		resultArr = append(resultArr, applyHtmlTemplate(d, params))
 	}
-	return strings.Join(resultArr, "")
+	innerHtml := strings.Join(resultArr, "")
+	html := fmt.Sprintf(`<html>
+									<head>
+									  <title>Result</title>
+									  <meta charset="UTF-8">
+									</head>
+									<body>
+										<link href='http://fonts.googleapis.com/css?family=Jolly+Lodger' rel='stylesheet' type='text/css'>
+										 <style type = "text/css">
+											p { font-family: 'Roboto', sans-serif;; }
+										</style>
+										%s
+									</body>
+								</html>`, innerHtml)
+
+	path, _ = file_storage.CreateFileInLocalStorage([]byte(html), ".html")
+	return path
 }
 
 func ConvertDataToPdf(data []Data, params Params) (path string) {
 	html := ConvertDataToHtml(data, params)
 	html = fmt.Sprintf(`<html>
 									<head>
-									  <title>My First HTML</title>
+									  <title>Result</title>
 									  <meta charset="UTF-8">
 									</head>
 									<body>
@@ -85,7 +104,7 @@ func ConvertDataToDoc(data []Data, params Params) (path string) {
 	for _, line := range resultArr {
 		para := f.AddParagraph()
 		para.AddText(line)
-		_= f.AddParagraph()
+		_ = f.AddParagraph()
 	}
 
 	buf := writerseeker.WriterSeeker{}
