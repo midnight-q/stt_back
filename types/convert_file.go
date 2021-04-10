@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -43,6 +44,7 @@ type ConvertFileFilter struct {
 	IsShowPunctuation bool
 	UserId            int
 	DataUrl           string
+	NamedEntityTypes  []string
 	//ConvertFileFilter remove this line for disable generator functionality
 
 	AbstractFilter
@@ -65,6 +67,14 @@ func GetConvertFileFilter(request *http.Request, functionType string) (filter Co
 		filter.IsShowEmotion, _ = strconv.ParseBool(request.FormValue("IsShowEmotion"))
 		filter.IsShowSpeaker, _ = strconv.ParseBool(request.FormValue("IsShowSpeaker"))
 		filter.IsShowTag, _ = strconv.ParseBool(request.FormValue("IsShowTag"))
+		filter.IsShowPunctuation, _ = strconv.ParseBool(request.FormValue("IsShowPunctuation"))
+
+		NamedEntityTypesString := request.FormValue("NamedEntityTypes")
+		err = json.Unmarshal([]byte(NamedEntityTypesString), &filter.NamedEntityTypes)
+		if err != nil {
+			fmt.Println("Unmarshal error:", err)
+			return ConvertFileFilter{}, err
+		}
 	} else {
 		err = errors.New("Unsupported content type")
 		return ConvertFileFilter{}, err

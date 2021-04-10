@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"stt_back/common"
 	"stt_back/errors"
 	"time"
 )
@@ -166,7 +167,7 @@ func ConvertSpeechToText(data []byte, params Params) (res Result, err error) {
 			RawText:   clearString(ner.Sent),
 			Speaker:   ner.SpeakerName,
 			Emotion:   getEmotionFromResult(resultData, ner.StartTime, ner.EndTime),
-			Tags:      covertTags(ner.NamedEntities),
+			Tags:      covertTags(ner.NamedEntities, params),
 		})
 	}
 
@@ -193,8 +194,11 @@ func clearString(sent string) string {
 	return strings.ToLower(processedString)
 }
 
-func covertTags(entities map[string][][]int) (res []Tag) {
+func covertTags(entities map[string][][]int, convertParams Params) (res []Tag) {
 	for name, params := range entities {
+		if !common.InArray(name, convertParams.NamedEntityTypes) {
+			continue
+		}
 		for _, param := range params {
 			res = append(res, Tag{
 				Name:  name,

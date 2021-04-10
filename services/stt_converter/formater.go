@@ -18,6 +18,7 @@ type Params struct {
 	IsShowSpeaker     bool
 	IsShowTag         bool
 	IsShowPunctuation bool
+	NamedEntityTypes  []string
 }
 
 func ConvertDataToText(data []Data, params Params) (path string) {
@@ -108,7 +109,7 @@ func ConvertDataToDoc(data []Data, params Params) (path string) {
 	}
 
 	buf := writerseeker.WriterSeeker{}
-	f.Write(&buf)
+	_ = f.Write(&buf)
 	b, _ := ioutil.ReadAll(buf.Reader())
 
 	path, _ = file_storage.CreateFileInLocalStorage(b, ".docx")

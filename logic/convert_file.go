@@ -59,6 +59,7 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		IsShowSpeaker:     filter.IsShowSpeaker,
 		IsShowTag:         filter.IsShowTag,
 		IsShowPunctuation: filter.IsShowPunctuation,
+		NamedEntityTypes:  filter.NamedEntityTypes,
 	}
 
 	result, err := stt_converter.ConvertSpeechToText(inputFile, converterParams)
