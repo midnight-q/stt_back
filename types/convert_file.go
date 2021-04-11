@@ -19,6 +19,8 @@ type ConvertFile struct {
 	ResultFilePdfPath string
 	ResultFileDocPath string
 	SourceFilePath    string
+	ResultText string
+
 	//ConvertFile remove this line for disable generator functionality
 
 	validator

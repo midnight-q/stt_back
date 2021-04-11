@@ -67,7 +67,7 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		return types.ConvertFile{}, err
 	}
 
-	resultTextPath := stt_converter.ConvertDataToText(result.Data, converterParams)
+	resultTextPath, resultText := stt_converter.ConvertDataToText(result.Data, converterParams)
 	resultHtmlPath := stt_converter.ConvertDataToHtml(result.Data, converterParams)
 	resultFilePdfPath := stt_converter.ConvertDataToPdf(result.Data, converterParams)
 	resultFileDocPath := stt_converter.ConvertDataToDoc(result.Data, converterParams) // TODO: Implement this
@@ -110,6 +110,7 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		ResultFilePdfPath: resultFilePdfPath,
 		Data:              result.Data,
 		SourceFilePath:    sourceFilePath,
+		ResultText:        resultText,
 	}
 	return
 }

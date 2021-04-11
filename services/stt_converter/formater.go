@@ -21,7 +21,7 @@ type Params struct {
 	NamedEntityTypes  []string
 }
 
-func ConvertDataToText(data []Data, params Params) (path string) {
+func ConvertDataToText(data []Data, params Params) (path, text string) {
 	resultArr := []string{}
 	sort.Slice(data, func(i, j int) bool {
 		return data[i].TimeStart < data[j].TimeStart
@@ -31,7 +31,7 @@ func ConvertDataToText(data []Data, params Params) (path string) {
 	}
 	resultText := strings.Join(resultArr, "\n")
 	path, _ = file_storage.CreateFileInLocalStorage([]byte(resultText), ".txt")
-	return path
+	return path, resultText
 }
 
 func ConvertDataToHtml(data []Data, params Params) (path string) {

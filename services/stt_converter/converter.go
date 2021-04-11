@@ -167,11 +167,11 @@ func ConvertSpeechToText(data []byte, params Params) (res Result, err error) {
 			RawText:   clearString(ner.Sent),
 			Speaker:   ner.SpeakerName,
 			Emotion:   getEmotionFromResult(resultData, ner.StartTime, ner.EndTime),
-			Tags:      covertTags(ner.NamedEntities, params),
+			Tags:      convertTags(ner.NamedEntities, params),
 		})
 	}
 
-	for i := 0; i < lastPhrase/(params.TimeFrame*1000); i++ {
+	for i := 0; i < lastPhrase/(params.TimeFrame*1000)+1; i++ {
 		t := time.Time{}
 		t = t.Add(time.Duration(params.TimeFrame * i * int(time.Second)))
 		res.Data = append(res.Data, Data{
@@ -194,7 +194,7 @@ func clearString(sent string) string {
 	return strings.ToLower(processedString)
 }
 
-func covertTags(entities map[string][][]int, convertParams Params) (res []Tag) {
+func convertTags(entities map[string][][]int, convertParams Params) (res []Tag) {
 	for name, params := range entities {
 		if !common.InArray(name, convertParams.NamedEntityTypes) {
 			continue
