@@ -34,7 +34,7 @@ func ConvertDataToText(data []Data, params Params) (path, text string) {
 	return path, resultText
 }
 
-func ConvertDataToHtml(data []Data, params Params) (path string) {
+func ConvertDataToHtml(data []Data, params Params) (path string, content string) {
 	resultArr := []string{}
 	sort.Slice(data, func(i, j int) bool {
 		return data[i].TimeStart < data[j].TimeStart
@@ -58,24 +58,11 @@ func ConvertDataToHtml(data []Data, params Params) (path string) {
 								</html>`, innerHtml)
 
 	path, _ = file_storage.CreateFileInLocalStorage([]byte(html), ".html")
-	return path
+	return path, html
 }
 
 func ConvertDataToPdf(data []Data, params Params) (path string) {
-	html := ConvertDataToHtml(data, params)
-	html = fmt.Sprintf(`<html>
-									<head>
-									  <title>Result</title>
-									  <meta charset="UTF-8">
-									</head>
-									<body>
-										<link href='http://fonts.googleapis.com/css?family=Jolly+Lodger' rel='stylesheet' type='text/css'>
-										 <style type = "text/css">
-											p { font-family: 'Roboto', sans-serif;; }
-										</style>
-										%s
-									</body>
-								</html>`, html)
+	_, html := ConvertDataToHtml(data, params)
 	pdfg, err := wkhtml.NewPDFGenerator()
 	if err != nil {
 		fmt.Println("Error in create pdf:", err)
