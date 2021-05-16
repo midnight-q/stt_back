@@ -70,7 +70,6 @@ func FillDBTestData() {
 	addUser()
 
 	migrations.AddRecordNumberForLogs()
-	os.Exit(1)
 }
 
 func addRouteType() {

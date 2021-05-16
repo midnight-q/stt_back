@@ -3,8 +3,11 @@ package logic
 import (
 	"bytes"
 	"fmt"
+	"github.com/google/uuid"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"stt_back/core"
 	"stt_back/dbmodels"
@@ -13,11 +16,7 @@ import (
 	"stt_back/services/stt_converter"
 	"stt_back/types"
 
-	"github.com/faiface/beep"
-	"github.com/faiface/beep/mp3"
-	"github.com/faiface/beep/wav"
 	"github.com/jinzhu/gorm"
-	"github.com/orcaman/writerseeker"
 )
 
 func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data types.ConvertFile, err error) {
@@ -71,7 +70,7 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 	resultTextPath, resultText := stt_converter.ConvertDataToText(result.Data, converterParams)
 	resultHtmlPath, _ := stt_converter.ConvertDataToHtml(result.Data, converterParams)
 	resultFilePdfPath := stt_converter.ConvertDataToPdf(result.Data, converterParams)
-	resultFileDocPath := stt_converter.ConvertDataToDoc(result.Data, converterParams) // TODO: Implement this
+	resultFileDocPath := stt_converter.ConvertDataToDoc(result.Data, converterParams)
 
 	filePath, err := file_storage.CreateFileInLocalStorage(inputFile, ".wav")
 	if err != nil {
@@ -91,8 +90,6 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		}
 	}
 
-
-
 	f := types.ConverterLogFilter{}
 	f.SetConverterLogModel(types.ConverterLog{
 		FilePath:          filePath,
@@ -103,7 +100,7 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		RawResult:         result.RawResult,
 		UserId:            filter.UserId,
 		SourceFilePath:    sourceFilePath,
-		RecordNumber: 	getNumberForUser(filter.UserId),
+		RecordNumber:      getNumberForUser(filter.UserId),
 	})
 	_, err = ConverterLogCreate(f, core.Db)
 
@@ -149,54 +146,37 @@ func getUnsupportedFileFormatError() error {
 }
 
 func convertInputFile(f *bytes.Reader, fileFormat string) (res []byte, err error) {
-	file := ioutil.NopCloser(f)
-	switch fileFormat {
-	case ".wav":
-		streamer, format, err := wav.Decode(file)
-		if err != nil {
-			return []byte{}, err
-		}
-		defer streamer.Close()
-		r := beep.Resample(3, format.SampleRate, beep.SampleRate(8000), streamer)
-		buf := writerseeker.WriterSeeker{}
-		err = wav.Encode(&buf, r, beep.Format{
-			SampleRate:  8000,
-			NumChannels: 1,
-			Precision:   2,
-		})
-		if err != nil {
-			return []byte{}, err
-		}
-		res, err = ioutil.ReadAll(buf.Reader())
-		if err != nil {
-			return []byte{}, err
-		}
-
-		break
-	case ".mp3":
-		streamer, format, err := mp3.Decode(file)
-		if err != nil {
-			return []byte{}, err
-		}
-		defer streamer.Close()
-		r := beep.Resample(3, format.SampleRate, beep.SampleRate(8000), streamer)
-		buf := writerseeker.WriterSeeker{}
-		err = wav.Encode(&buf, r, beep.Format{
-			SampleRate:  8000,
-			NumChannels: 1,
-			Precision:   2,
-		})
-		if err != nil {
-			return []byte{}, err
-		}
-		res, err = ioutil.ReadAll(buf.Reader())
-		if err != nil {
-			return []byte{}, err
-		}
-		break
-	default:
-		return []byte{}, getUnsupportedFileFormatError()
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return
+	}
+	name := uuid.New().String()
+	inputName := name + fileFormat
+	outputName := name + "_new.wav"
+	err = ioutil.WriteFile(inputName, b, os.ModePerm)
+	if err != nil {
+		return
+	}
+	cmd := exec.Command("/usr/bin/ffmpeg", "-i", inputName, "-ac", "1", "-ar", "8000", outputName)
+	_, err = cmd.Output()
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println(cmd.String())
+		return nil, err
 	}
 
-	return
+	b, err = ioutil.ReadFile(outputName)
+	if err != nil {
+		return
+	}
+	err = os.Remove(inputName)
+	if err != nil {
+		return
+	}
+	err = os.Remove(outputName)
+	if err != nil {
+		return
+	}
+
+	return b, nil
 }
