@@ -20,6 +20,7 @@ func GenConverterLog() types.ConverterLog {
 		ResultFilePdfPath: strings.Title(Babbler2.Babble()),
 		UserId:            rand.Intn(100500),
 		SourceFilePath: strings.Title(Babbler2.Babble()),
+		RecordNumber: rand.Intn(100500),
 		//ConverterLog remove this line for disable generator functionality
 	}
 }

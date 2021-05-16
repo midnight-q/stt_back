@@ -20,6 +20,7 @@ type ConverterLog struct {
 	UserId            int
 	CreatedAt         time.Time
 	SourceFilePath    string
+	RecordNumber int
 	//ConverterLog remove this line for disable generator functionality
 
 	validator

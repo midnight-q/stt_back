@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"stt_back/bootstrap/migrations"
 	"stt_back/core"
 	"stt_back/dbmodels"
 	"stt_back/logic"
@@ -68,6 +69,8 @@ func FillDBTestData() {
 	addRouteType()
 	addUser()
 
+	migrations.AddRecordNumberForLogs()
+	os.Exit(1)
 }
 
 func addRouteType() {

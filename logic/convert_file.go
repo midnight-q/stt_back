@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"stt_back/core"
+	"stt_back/dbmodels"
 	"stt_back/errors"
 	"stt_back/services/file_storage"
 	"stt_back/services/stt_converter"
@@ -90,6 +91,8 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		}
 	}
 
+
+
 	f := types.ConverterLogFilter{}
 	f.SetConverterLogModel(types.ConverterLog{
 		FilePath:          filePath,
@@ -100,6 +103,7 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		RawResult:         result.RawResult,
 		UserId:            filter.UserId,
 		SourceFilePath:    sourceFilePath,
+		RecordNumber: 	getNumberForUser(filter.UserId),
 	})
 	_, err = ConverterLogCreate(f, core.Db)
 
@@ -113,6 +117,13 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		ResultText:        resultText,
 	}
 	return
+}
+
+func getNumberForUser(userId int) int {
+	count := 0
+	core.Db.Unscoped().Model(dbmodels.ConverterLog{}).Where(dbmodels.ConverterLog{UserId: userId}).Count(&count)
+
+	return count + 1
 }
 
 func loadFileFormUrl(url string) (res []byte, ext string, err error) {
