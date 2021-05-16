@@ -165,7 +165,7 @@ func ConvertSpeechToText(data []byte, params Params) (res Result, err error) {
 			TimeEnd:   ner.EndTime,
 			Text:      ner.Text,
 			RawText:   clearString(ner.Sent),
-			Speaker:   ner.SpeakerName,
+			Speaker:   getSpeakerName(ner.SpeakerName),
 			Emotion:   getEmotionFromResult(resultData, ner.StartTime, ner.EndTime),
 			Tags:      convertTags(ner.NamedEntities, params),
 		})
@@ -183,6 +183,14 @@ func ConvertSpeechToText(data []byte, params Params) (res Result, err error) {
 	}
 
 	return
+}
+
+func getSpeakerName(name string) string {
+	name = strings.TrimSpace(name)
+	if strings.Index(name, "Спикер") > -1 {
+		return name
+	}
+	return "Спикер " + name
 }
 
 func clearString(sent string) string {
