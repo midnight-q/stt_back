@@ -24,7 +24,7 @@ type Params struct {
 func ConvertDataToText(data []Data, params Params) (path, text string) {
 	resultArr := []string{}
 	sort.Slice(data, func(i, j int) bool {
-		return data[i].TimeStart < data[j].TimeStart
+		return data[i].TimeStart <= data[j].TimeStart
 	})
 	for _, d := range data {
 		resultArr = append(resultArr, applyTextTemplate(d, params))
