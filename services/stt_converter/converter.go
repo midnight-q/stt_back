@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"stt_back/common"
 	"stt_back/errors"
@@ -153,7 +154,6 @@ func ConvertSpeechToText(data []byte, params Params) (res Result, err error) {
 	res.RawData = resultData
 	res.RawResult = string(rawString)
 
-
 	rawRes := []Data{}
 	for _, ner := range resultData.Result.Ner {
 		rawRes = append(rawRes, Data{
@@ -181,7 +181,7 @@ func ConvertSpeechToText(data []byte, params Params) (res Result, err error) {
 	}
 
 	lastPhrase := 0
-	for _,d := range res.Data {
+	for _, d := range res.Data {
 		if lastPhrase < d.TimeStart {
 			lastPhrase = d.TimeStart
 		}
@@ -273,7 +273,11 @@ func getSpeakerName(name string) string {
 	if strings.Index(name, "Спикер") > -1 {
 		return name
 	}
-	return "Спикер " + name
+	number, err := strconv.Atoi(name)
+	if err != nil {
+		return "Спикер " + name
+	}
+	return fmt.Sprintf("Спикер %d", number+1)
 }
 
 func clearString(sent string) string {
