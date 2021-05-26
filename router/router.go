@@ -1,12 +1,12 @@
 package router
 
 import (
-    "net/http"
+    "encoding/json"
     "github.com/gorilla/mux"
     "github.com/rs/cors"
-    "encoding/json"
-    "stt_back/webapp"
+    "net/http"
     "stt_back/settings"
+    "stt_back/webapp"
 )
 
 // Router - маршрутизатор
@@ -157,6 +157,12 @@ func Router() http.Handler {
     router.HandleFunc(settings.ConvertFileRoute,         webapp.ConvertFileCreate).Methods("POST")
 
     router.HandleFunc(settings.StaticFileRoute+"/{folder}/{name}", webapp.StaticFileLoader).Methods("GET")
+
+    //[ ConvertFileV2 ]
+    router.HandleFunc(settings.ConvertFileV2Route,         webapp.ConvertFileV2Create).Methods("POST")
+
+    //[ CheckConverterLog ]
+      router.HandleFunc(settings.CheckConverterLogRoute+"/{id}", webapp.CheckConverterLogRead).Methods("GET")
 
     //router-generator here dont touch this line
 

@@ -21,6 +21,16 @@ func GenConverterLog() types.ConverterLog {
 		UserId:            rand.Intn(100500),
 		SourceFilePath: strings.Title(Babbler2.Babble()),
 		RecordNumber: rand.Intn(100500),
+		TimeFrame: rand.Intn(100500),
+		IsShowEmotion: (rand.Intn(100500) % 2 > 0),
+		IsShowSpeaker: (rand.Intn(100500) % 2 > 0),
+		IsShowTag: (rand.Intn(100500) % 2 > 0),
+		IsShowPunctuation: (rand.Intn(100500) % 2 > 0),
+		NamedEntityTypes: strings.Title(Babbler2.Babble()),
+		Status: strings.Title(Babbler2.Babble()),
+		Token: strings.Title(Babbler2.Babble()),
+		ResultText: strings.Title(Babbler2.Babble()),
+		ErrorString: strings.Title(Babbler2.Babble()),
 		//ConverterLog remove this line for disable generator functionality
 	}
 }

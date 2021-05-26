@@ -17,6 +17,16 @@ type ConverterLog struct {
 	UserId            int
 	SourceFilePath    string
 	RecordNumber int
+	TimeFrame int
+	IsShowEmotion bool
+	IsShowSpeaker bool
+	IsShowTag bool
+	IsShowPunctuation bool
+	NamedEntityTypes string
+	Status string
+	Token string
+	ResultText string
+	ErrorString string
 	//ConverterLog remove this line for disable generator functionality
 
 	CreatedAt time.Time

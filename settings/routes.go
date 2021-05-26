@@ -35,6 +35,10 @@ const ConverterLogRoute = "/api/v1/converterLog"
 
 const ConvertFileRoute = "/api/v1/convertFile"
 
+const ConvertFileV2Route = "/api/v2/convertFile"
+
+const CheckConverterLogRoute = "/api/v2/checkConverterLog"
+
 // route-constant-generator here dont touch this line
 
 const StaticFileRoute = "/static"
@@ -54,5 +58,7 @@ var RoutesArray = []string{
 	LanguageRoute,
 	ConverterLogRoute,
 	ConvertFileRoute,
+	ConvertFileV2Route,
+	CheckConverterLogRoute,
     // router-list-generator here dont touch this line
 }

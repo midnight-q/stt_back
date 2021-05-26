@@ -20,7 +20,17 @@ type ConverterLog struct {
 	UserId            int
 	CreatedAt         time.Time
 	SourceFilePath    string
-	RecordNumber int
+	RecordNumber      int
+	TimeFrame         int
+	IsShowEmotion     bool
+	IsShowSpeaker     bool
+	IsShowTag         bool
+	IsShowPunctuation bool
+	NamedEntityTypes  string
+	Status            string
+	Token             string
+	ResultText        string
+	ErrorString       string
 	//ConverterLog remove this line for disable generator functionality
 
 	validator

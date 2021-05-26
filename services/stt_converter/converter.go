@@ -78,6 +78,15 @@ type ResultData struct {
 	} `json:"result"`
 }
 
+type ProcessingResult struct {
+	SecondsRemain int `json:"seconds_remain"`
+}
+
+type ResultDataAsync struct {
+	Message string `json:"message"`
+	Token   string `json:"token"`
+}
+
 type Data struct {
 	TimeStart        int
 	TimeEnd          int
@@ -99,6 +108,21 @@ type Result struct {
 	RawResult string
 	RawData   ResultData
 	Data      []Data
+}
+
+type CheckResult struct {
+	RawResult    string
+	RawData      ResultData
+	Data         []Data
+	Status       string
+	TimeEstimate int
+	ErrorString  string
+}
+
+type ResultV2 struct {
+	RawResult string
+	RawData   ResultDataAsync
+	Token     string
 }
 
 func ConvertSpeechToText(data []byte, params Params) (res Result, err error) {
@@ -197,6 +221,162 @@ func ConvertSpeechToText(data []byte, params Params) (res Result, err error) {
 			RawText:          t.Format("04:05"),
 			IsTimeFrameLabel: true,
 		})
+	}
+
+	return
+}
+
+func ConvertSpeechToTextV2(data []byte) (res ResultV2, err error) {
+	reader := bytes.NewReader(data)
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("wav", "file.wav")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	io.Copy(part, reader)
+	writer.Close()
+	request, err := http.NewRequest("POST", "https://ai.nsu.ru:7777/a8cb46de23/recognize_async", body)
+	if err != nil {
+		return ResultV2{}, err
+	}
+	request.Header.Add("Content-Type", writer.FormDataContentType())
+	client := &http.Client{}
+
+	response, err := client.Do(request)
+
+	if err != nil {
+		return ResultV2{}, err
+	}
+
+	if response.StatusCode != 202 {
+		rawString, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return ResultV2{}, err
+		}
+		fmt.Println(string(rawString), response.StatusCode)
+
+		err = errors.New("Error in request to converter: " + string(rawString))
+		return ResultV2{}, err
+	}
+
+	defer response.Body.Close()
+
+	rawString, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return ResultV2{}, err
+	}
+	var resultData = ResultDataAsync{}
+	err = json.Unmarshal(rawString, &resultData)
+	if err != nil {
+		return ResultV2{}, err
+	}
+
+	res.RawData = resultData
+	res.RawResult = string(rawString)
+	res.Token = resultData.Token
+	return
+}
+
+func CheckConvertStatus(token string, params Params) (res CheckResult, err error) {
+	var jsonStr = []byte(fmt.Sprintf(`{"token":"%s"}`, token))
+	req, err := http.NewRequest("POST", "https://ai.nsu.ru:7777/a8cb46de23/get_response", bytes.NewBuffer(jsonStr))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer response.Body.Close()
+	rawString, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return CheckResult{}, err
+	}
+
+	switch response.StatusCode {
+	case 200:
+		res.Status = "Complete"
+
+		var resultData = ResultData{}
+		err = json.Unmarshal(rawString, &resultData)
+		if err != nil {
+			return CheckResult{}, err
+		}
+
+		res.RawData = resultData
+		res.RawResult = string(rawString)
+
+		rawRes := []Data{}
+		for _, ner := range resultData.Result.Ner {
+			rawRes = append(rawRes, Data{
+				TimeStart: ner.StartTime,
+				TimeEnd:   ner.EndTime,
+				Text:      ner.Text,
+				RawText:   clearString(ner.Sent),
+				Speaker:   getSpeakerName(ner.SpeakerName),
+				Emotion:   getEmotionFromResult(resultData, ner.StartTime, ner.EndTime),
+				Tags:      convertTags(ner.NamedEntities, params),
+			})
+		}
+
+		timeFrame := params.TimeFrame * 1000
+
+		//Split phrase if collision with timeFrame marker exist
+		for _, d := range rawRes {
+			if d.TimeStart/timeFrame != d.TimeEnd/timeFrame {
+				collisionCount := d.TimeEnd/timeFrame - d.TimeStart/timeFrame
+				splittedPhrase := splitPhrase(d, collisionCount, timeFrame, &resultData)
+				res.Data = append(res.Data, splittedPhrase...)
+			} else {
+				res.Data = append(res.Data, d)
+			}
+		}
+
+		lastPhrase := 0
+		for _, d := range res.Data {
+			if lastPhrase < d.TimeStart {
+				lastPhrase = d.TimeStart
+			}
+		}
+		//Add timeFrame markers
+		for i := 0; i < lastPhrase/timeFrame+1; i++ {
+			t := time.Time{}
+			t = t.Add(time.Duration(params.TimeFrame * i * int(time.Second)))
+			res.Data = append(res.Data, Data{
+				TimeStart:        timeFrame * i,
+				TimeEnd:          timeFrame * i,
+				Text:             t.Format("04:05"),
+				RawText:          t.Format("04:05"),
+				IsTimeFrameLabel: true,
+			})
+		}
+		return
+	case 201:
+		res.Status = "Partial"
+		//TODO: Write this
+
+		fmt.Println("Partial response:", string(rawString))
+
+		return
+	case 202:
+		res.Status = "Processing"
+		var resultData = ProcessingResult{}
+		err = json.Unmarshal(rawString, &resultData)
+		if err != nil {
+			return CheckResult{}, err
+		}
+		res.TimeEstimate = resultData.SecondsRemain
+		return
+
+	default:
+		fmt.Println(string(rawString), response.StatusCode)
+
+		err = errors.New("Error in request to converter: " + string(rawString))
+		return CheckResult{}, err
 	}
 
 	return

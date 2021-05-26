@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"stt_back/common"
 	"stt_back/core"
 	"stt_back/dbmodels"
 	"stt_back/errors"
@@ -92,6 +93,7 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 
 	f := types.ConverterLogFilter{}
 	f.SetConverterLogModel(types.ConverterLog{
+		ResultText:        resultText,
 		FilePath:          filePath,
 		ResultTextPath:    resultTextPath,
 		ResultHtmlPath:    resultHtmlPath,
@@ -101,7 +103,15 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		UserId:            filter.UserId,
 		SourceFilePath:    sourceFilePath,
 		RecordNumber:      getNumberForUser(filter.UserId),
+		TimeFrame:         filter.TimeFrame,
+		IsShowEmotion:     filter.IsShowEmotion,
+		IsShowSpeaker:     filter.IsShowSpeaker,
+		IsShowTag:         filter.IsShowTag,
+		IsShowPunctuation: filter.IsShowPunctuation,
+		NamedEntityTypes:  common.DataToString(filter.NamedEntityTypes),
+		Status:            "Complete",
 	})
+
 	_, err = ConverterLogCreate(f, core.Db)
 
 	data = types.ConvertFile{

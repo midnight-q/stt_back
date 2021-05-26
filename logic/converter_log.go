@@ -241,6 +241,16 @@ func ConverterLogUpdate(filter types.ConverterLogFilter, query *gorm.DB) (data t
 	updateModel.UserId = newModel.UserId
 	updateModel.SourceFilePath = newModel.SourceFilePath
 	updateModel.RecordNumber = newModel.RecordNumber
+	updateModel.TimeFrame = newModel.TimeFrame
+	updateModel.IsShowEmotion = newModel.IsShowEmotion
+	updateModel.IsShowSpeaker = newModel.IsShowSpeaker
+	updateModel.IsShowTag = newModel.IsShowTag
+	updateModel.IsShowPunctuation = newModel.IsShowPunctuation
+	updateModel.NamedEntityTypes = newModel.NamedEntityTypes
+	updateModel.Status = newModel.Status
+	updateModel.Token = newModel.Token
+	updateModel.ResultText = newModel.ResultText
+	updateModel.ErrorString = newModel.ErrorString
 	//updateModel.Field remove this line for disable generator functionality
 
 	updateModel.Validate()
@@ -397,6 +407,16 @@ func AssignConverterLogTypeFromDb(dbConverterLog dbmodels.ConverterLog) types.Co
 		CreatedAt:         dbConverterLog.CreatedAt,
 		SourceFilePath: dbConverterLog.SourceFilePath,
 		RecordNumber: dbConverterLog.RecordNumber,
+		TimeFrame: dbConverterLog.TimeFrame,
+		IsShowEmotion: dbConverterLog.IsShowEmotion,
+		IsShowSpeaker: dbConverterLog.IsShowSpeaker,
+		IsShowTag: dbConverterLog.IsShowTag,
+		IsShowPunctuation: dbConverterLog.IsShowPunctuation,
+		NamedEntityTypes: dbConverterLog.NamedEntityTypes,
+		Status: dbConverterLog.Status,
+		Token: dbConverterLog.Token,
+		ResultText: dbConverterLog.ResultText,
+		ErrorString: dbConverterLog.ErrorString,
 		//AssignConverterLogTypeFromDb.Field remove this line for disable generator functionality
 	}
 }
@@ -418,6 +438,16 @@ func AssignConverterLogDbFromType(typeModel types.ConverterLog) dbmodels.Convert
 		UserId:            typeModel.UserId,
 		SourceFilePath:    typeModel.SourceFilePath,
 		RecordNumber: typeModel.RecordNumber,
+		TimeFrame: typeModel.TimeFrame,
+		IsShowEmotion: typeModel.IsShowEmotion,
+		IsShowSpeaker: typeModel.IsShowSpeaker,
+		IsShowTag: typeModel.IsShowTag,
+		IsShowPunctuation: typeModel.IsShowPunctuation,
+		NamedEntityTypes: typeModel.NamedEntityTypes,
+		Status: typeModel.Status,
+		Token: typeModel.Token,
+		ResultText: typeModel.ResultText,
+		ErrorString: typeModel.ErrorString,
 		//AssignConverterLogDbFromType.Field remove this line for disable generator functionality
 	}
 }
