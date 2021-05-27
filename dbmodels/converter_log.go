@@ -27,6 +27,7 @@ type ConverterLog struct {
 	Token string
 	ResultText string
 	ErrorString string
+	Duration int
 	//ConverterLog remove this line for disable generator functionality
 
 	CreatedAt time.Time

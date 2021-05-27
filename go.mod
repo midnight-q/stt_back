@@ -4,8 +4,9 @@ go 1.16
 
 require (
 	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.6.1
-	github.com/faiface/beep v1.0.2
+	github.com/faiface/beep v1.0.2 // indirect
 	github.com/gingfrederik/docx v0.0.1
+	github.com/go-audio/wav v1.0.0
 	github.com/google/uuid v1.2.0
 	github.com/gorilla/mux v1.8.0
 	github.com/jinzhu/gorm v1.9.16

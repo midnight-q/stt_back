@@ -19,63 +19,69 @@ import (
 )
 
 type ResultData struct {
-	Result struct {
-		Diarization []struct {
-			EndTime     int    `json:"end_time"`
-			SpeakerName string `json:"speaker_name"`
-			StartTime   int    `json:"start_time"`
-		} `json:"diarization"`
-		Ner []struct {
-			EndTime       int                `json:"end_time"`
-			NamedEntities map[string][][]int `json:"named_entities"`
-			Sent          string             `json:"sent"`
-			SpeakerName   string             `json:"speaker_name"`
-			StartTime     int                `json:"start_time"`
-			Text          string             `json:"text"`
-		} `json:"ner"`
-		Re []struct {
-			EndTime       int      `json:"end_time"`
-			NamedEntities struct{} `json:"named_entities"`
-			Relations     struct{} `json:"relations"`
-			Sent          string   `json:"sent"`
-			SpeakerName   string   `json:"speaker_name"`
-			StartTime     int      `json:"start_time"`
-			Text          string   `json:"text"`
-		} `json:"re"`
-		Stt []struct {
-			EndTime   int    `json:"end_time"`
-			StartTime int    `json:"start_time"`
-			Word      string `json:"word"`
-		} `json:"stt"`
-		SttDictors []struct {
-			EndTime       int `json:"end_time"`
-			NamedEntities struct {
-			} `json:"named_entities"`
-			Sent        string `json:"sent"`
-			SpeakerName string `json:"speaker_name"`
-			StartTime   int    `json:"start_time"`
-			Text        string `json:"text"`
-		} `json:"stt.dictors"`
-		SttPunct []struct {
-			EndTime   int    `json:"end_time"`
-			Sent      string `json:"sent"`
-			StartTime int    `json:"start_time"`
-		} `json:"stt.punct"`
-		Toxic []struct {
-			EndTime       int      `json:"end_time"`
-			NamedEntities struct{} `json:"named_entities"`
-			Sent          string   `json:"sent"`
-			Sentiment     struct {
-				Certainty float64 `json:"certainty"`
-				Label     string  `json:"label"`
-				Output    int     `json:"output"`
-			} `json:"sentiment"`
-			SpeakerName string `json:"speaker_name"`
-			StartTime   int    `json:"start_time"`
-			Text        string `json:"text"`
-		} `json:"toxic"`
-		Vad [][]int `json:"vad"`
-	} `json:"result"`
+	Result ServiceResult `json:"result"`
+}
+type PartialResultData struct {
+	Result  ServiceResult `json:"partial_result"`
+	Message string        `json:"message"`
+}
+
+type ServiceResult struct {
+	Diarization []struct {
+		EndTime     int    `json:"end_time"`
+		SpeakerName string `json:"speaker_name"`
+		StartTime   int    `json:"start_time"`
+	} `json:"diarization"`
+	Ner []struct {
+		EndTime       int                `json:"end_time"`
+		NamedEntities map[string][][]int `json:"named_entities"`
+		Sent          string             `json:"sent"`
+		SpeakerName   string             `json:"speaker_name"`
+		StartTime     int                `json:"start_time"`
+		Text          string             `json:"text"`
+	} `json:"ner"`
+	Re []struct {
+		EndTime       int      `json:"end_time"`
+		NamedEntities struct{} `json:"named_entities"`
+		Relations     struct{} `json:"relations"`
+		Sent          string   `json:"sent"`
+		SpeakerName   string   `json:"speaker_name"`
+		StartTime     int      `json:"start_time"`
+		Text          string   `json:"text"`
+	} `json:"re"`
+	Stt []struct {
+		EndTime   int    `json:"end_time"`
+		StartTime int    `json:"start_time"`
+		Word      string `json:"word"`
+	} `json:"stt"`
+	SttDictors []struct {
+		EndTime       int `json:"end_time"`
+		NamedEntities struct {
+		} `json:"named_entities"`
+		Sent        string `json:"sent"`
+		SpeakerName string `json:"speaker_name"`
+		StartTime   int    `json:"start_time"`
+		Text        string `json:"text"`
+	} `json:"stt.dictors"`
+	SttPunct []struct {
+		EndTime   int    `json:"end_time"`
+		Sent      string `json:"sent"`
+		StartTime int    `json:"start_time"`
+	} `json:"stt.punct"`
+	Toxic []struct {
+		EndTime       int      `json:"end_time"`
+		NamedEntities struct{} `json:"named_entities"`
+		Sent          string   `json:"sent"`
+		Sentiment     struct {
+			Certainty float64 `json:"certainty"`
+			Label     string  `json:"label"`
+			Output    int     `json:"output"`
+		} `json:"sentiment"`
+		SpeakerName string `json:"speaker_name"`
+		StartTime   int    `json:"start_time"`
+		Text        string `json:"text"`
+	} `json:"toxic"`
+	Vad [][]int `json:"vad"`
 }
 
 type ProcessingResult struct {
@@ -278,11 +284,13 @@ func ConvertSpeechToTextV2(data []byte) (res ResultV2, err error) {
 	res.RawData = resultData
 	res.RawResult = string(rawString)
 	res.Token = resultData.Token
+	fmt.Println(resultData.Token)
 	return
 }
 
 func CheckConvertStatus(token string, params Params) (res CheckResult, err error) {
 	var jsonStr = []byte(fmt.Sprintf(`{"token":"%s"}`, token))
+	fmt.Println(token)
 	req, err := http.NewRequest("POST", "https://ai.nsu.ru:7777/a8cb46de23/get_response", bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -357,9 +365,61 @@ func CheckConvertStatus(token string, params Params) (res CheckResult, err error
 		return
 	case 201:
 		res.Status = "Partial"
-		//TODO: Write this
 
-		fmt.Println("Partial response:", string(rawString))
+		var resultData = PartialResultData{}
+		err = json.Unmarshal(rawString, &resultData)
+		if err != nil {
+			return CheckResult{}, err
+		}
+
+		res.RawData = ResultData{Result: resultData.Result}
+		res.RawResult = string(rawString)
+		res.ErrorString = resultData.Message
+
+		rawRes := []Data{}
+		for _, ner := range resultData.Result.Ner {
+			rawRes = append(rawRes, Data{
+				TimeStart: ner.StartTime,
+				TimeEnd:   ner.EndTime,
+				Text:      ner.Text,
+				RawText:   clearString(ner.Sent),
+				Speaker:   getSpeakerName(ner.SpeakerName),
+				Emotion:   getEmotionFromResult(ResultData{Result: resultData.Result}, ner.StartTime, ner.EndTime),
+				Tags:      convertTags(ner.NamedEntities, params),
+			})
+		}
+
+		timeFrame := params.TimeFrame * 1000
+
+		//Split phrase if collision with timeFrame marker exist
+		for _, d := range rawRes {
+			if d.TimeStart/timeFrame != d.TimeEnd/timeFrame {
+				collisionCount := d.TimeEnd/timeFrame - d.TimeStart/timeFrame
+				splittedPhrase := splitPhrase(d, collisionCount, timeFrame, &ResultData{Result: resultData.Result})
+				res.Data = append(res.Data, splittedPhrase...)
+			} else {
+				res.Data = append(res.Data, d)
+			}
+		}
+
+		lastPhrase := 0
+		for _, d := range res.Data {
+			if lastPhrase < d.TimeStart {
+				lastPhrase = d.TimeStart
+			}
+		}
+		//Add timeFrame markers
+		for i := 0; i < lastPhrase/timeFrame+1; i++ {
+			t := time.Time{}
+			t = t.Add(time.Duration(params.TimeFrame * i * int(time.Second)))
+			res.Data = append(res.Data, Data{
+				TimeStart:        timeFrame * i,
+				TimeEnd:          timeFrame * i,
+				Text:             t.Format("04:05"),
+				RawText:          t.Format("04:05"),
+				IsTimeFrameLabel: true,
+			})
+		}
 
 		return
 	case 202:

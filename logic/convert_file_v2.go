@@ -27,13 +27,14 @@ func ConvertFileV2Create(filter types.ConvertFileV2Filter, query *gorm.DB) (data
 	}
 
 	var inputFile []byte
+	var duration float64
 	if filter.Header != nil {
 		ext := filepath.Ext(filter.Header.Filename)
 		b, err := ioutil.ReadAll(filter.File)
 		if err != nil {
 			return types.ConvertFileV2{}, err
 		}
-		inputFile, err = convertInputFile(bytes.NewReader(b), ext)
+		inputFile, duration, err = convertInputFile(bytes.NewReader(b), ext)
 		if err != nil {
 			return types.ConvertFileV2{}, err
 		}
@@ -42,7 +43,7 @@ func ConvertFileV2Create(filter types.ConvertFileV2Filter, query *gorm.DB) (data
 		if err != nil {
 			return types.ConvertFileV2{}, err
 		}
-		inputFile, err = convertInputFile(bytes.NewReader(b), ext)
+		inputFile, duration, err = convertInputFile(bytes.NewReader(b), ext)
 		if err != nil {
 			return types.ConvertFileV2{}, err
 		}
@@ -88,7 +89,8 @@ func ConvertFileV2Create(filter types.ConvertFileV2Filter, query *gorm.DB) (data
 		IsShowPunctuation: filter.IsShowPunctuation,
 		NamedEntityTypes:  common.DataToString(filter.NamedEntityTypes),
 		Status:            "Processing",
-		Token: 				result.Token,
+		Token:             result.Token,
+		Duration:          int(duration),
 	})
 
 	converterLog, err := ConverterLogCreate(f, core.Db)

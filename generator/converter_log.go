@@ -31,6 +31,7 @@ func GenConverterLog() types.ConverterLog {
 		Token: strings.Title(Babbler2.Babble()),
 		ResultText: strings.Title(Babbler2.Babble()),
 		ErrorString: strings.Title(Babbler2.Babble()),
+		Duration: rand.Intn(100500),
 		//ConverterLog remove this line for disable generator functionality
 	}
 }

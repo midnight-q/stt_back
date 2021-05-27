@@ -251,6 +251,7 @@ func ConverterLogUpdate(filter types.ConverterLogFilter, query *gorm.DB) (data t
 	updateModel.Token = newModel.Token
 	updateModel.ResultText = newModel.ResultText
 	updateModel.ErrorString = newModel.ErrorString
+	updateModel.Duration = newModel.Duration
 	//updateModel.Field remove this line for disable generator functionality
 
 	updateModel.Validate()
@@ -417,6 +418,7 @@ func AssignConverterLogTypeFromDb(dbConverterLog dbmodels.ConverterLog) types.Co
 		Token: dbConverterLog.Token,
 		ResultText: dbConverterLog.ResultText,
 		ErrorString: dbConverterLog.ErrorString,
+		Duration: dbConverterLog.Duration,
 		//AssignConverterLogTypeFromDb.Field remove this line for disable generator functionality
 	}
 }
@@ -448,6 +450,7 @@ func AssignConverterLogDbFromType(typeModel types.ConverterLog) dbmodels.Convert
 		Token: typeModel.Token,
 		ResultText: typeModel.ResultText,
 		ErrorString: typeModel.ErrorString,
+		Duration: typeModel.Duration,
 		//AssignConverterLogDbFromType.Field remove this line for disable generator functionality
 	}
 }

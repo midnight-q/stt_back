@@ -3,6 +3,7 @@ package logic
 import (
 	"bytes"
 	"fmt"
+	"github.com/go-audio/wav"
 	"github.com/google/uuid"
 	"io/ioutil"
 	"net/http"
@@ -31,13 +32,14 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 	}
 
 	var inputFile []byte
+	var duration float64
 	if filter.Header != nil {
 		ext := filepath.Ext(filter.Header.Filename)
 		b, err := ioutil.ReadAll(filter.File)
 		if err != nil {
 			return types.ConvertFile{}, err
 		}
-		inputFile, err = convertInputFile(bytes.NewReader(b), ext)
+		inputFile, duration, err = convertInputFile(bytes.NewReader(b), ext)
 		if err != nil {
 			return types.ConvertFile{}, err
 		}
@@ -46,7 +48,7 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		if err != nil {
 			return types.ConvertFile{}, err
 		}
-		inputFile, err = convertInputFile(bytes.NewReader(b), ext)
+		inputFile, duration, err = convertInputFile(bytes.NewReader(b), ext)
 		if err != nil {
 			return types.ConvertFile{}, err
 		}
@@ -110,6 +112,7 @@ func ConvertFileCreate(filter types.ConvertFileFilter, query *gorm.DB) (data typ
 		IsShowPunctuation: filter.IsShowPunctuation,
 		NamedEntityTypes:  common.DataToString(filter.NamedEntityTypes),
 		Status:            "Complete",
+		Duration:          int(duration),
 	})
 
 	_, err = ConverterLogCreate(f, core.Db)
@@ -155,7 +158,7 @@ func getUnsupportedFileFormatError() error {
 	return errors.NewErrorWithCode("Unsupported file format", errors.ErrorCodeUnsupportedFileFormat, "InputFilename")
 }
 
-func convertInputFile(f *bytes.Reader, fileFormat string) (res []byte, err error) {
+func convertInputFile(f *bytes.Reader, fileFormat string) (res []byte, duration float64, err error) {
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
 		return
@@ -172,8 +175,9 @@ func convertInputFile(f *bytes.Reader, fileFormat string) (res []byte, err error
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println(cmd.String())
-		return nil, err
+		return nil, 0.0, err
 	}
+	duration = getFileDuration(outputName)
 
 	b, err = ioutil.ReadFile(outputName)
 	if err != nil {
@@ -188,5 +192,18 @@ func convertInputFile(f *bytes.Reader, fileFormat string) (res []byte, err error
 		return
 	}
 
-	return b, nil
+	return b, duration, nil
+}
+
+func getFileDuration(fileName string) float64 {
+	f, err := os.Open(fileName)
+	if err != nil {
+		return 0.0
+	}
+	defer f.Close()
+	dur, err := wav.NewDecoder(f).Duration()
+	if err != nil {
+		return 0.0
+	}
+	return dur.Seconds()
 }
